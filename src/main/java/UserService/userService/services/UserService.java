@@ -1,11 +1,9 @@
 package UserService.userService.services;
 
+import UserService.userService.entites.PlayedGenre;
 import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
-import UserService.userService.repositories.PlayedMediaRepository;
 import UserService.userService.repositories.UserRepository;
-import UserService.userService.vo.Album;
-import UserService.userService.vo.Artist;
 import UserService.userService.vo.Genre;
 import UserService.userService.vo.Media;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +21,14 @@ public class UserService {
     private UserRepository userRepository;
     private RestTemplate restTemplate;
     private PlayedMediaService playedMediaService;
+    private PlayedGenreService playedGenreService;
 
     @Autowired
-    public UserService(UserRepository userRepository, RestTemplate restTemplate, PlayedMediaService playedMediaService) {
+    public UserService(UserRepository userRepository, RestTemplate restTemplate, PlayedMediaService playedMediaService, PlayedGenreService playedGenreService) {
         this.userRepository = userRepository;
         this.restTemplate = restTemplate;
         this.playedMediaService = playedMediaService;
+        this.playedGenreService = playedGenreService;
     }
 
     public List<User> findAllUsers() {
@@ -88,30 +88,22 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
         }
 
-        System.out.println("user found - checking to see if song is already played");
-
         // If person has NOT listened to the song before - create it
-        if (!hasListenedBefore(user, url)) {
-            System.out.println("song has not been played before");
+        if (!hasPlayedMediaBefore(user, url)) {
 
-            System.out.println("fetching media by url");
             // Get Media
             Media mediaToPlay = getMediaByUrl(url);
 
-            System.out.println("recieved the mediaToPlay with the resttemplate media inside");
-
 
             if (mediaToPlay == null) {
-                System.out.println("mediaToPlay is null");
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
             }
-
-            System.out.println("Sending Media to create Played Media");
+            // Creating played media
             PlayedMedia savedMedia = playedMediaService.createFromUser(mediaToPlay);
 
+            // Saving played media to user
             user.addMediaToPlayedMedia(savedMedia);
-
-            System.out.println("EVEYRTHING SHOULD BE RETURNING NOW");
+            userRepository.save(user);
 
             return savedMedia;
 
@@ -129,22 +121,24 @@ public class UserService {
 
     }
 
-    public boolean hasListenedBefore(User user, String url) {
+    public boolean hasPlayedMediaBefore(User user, String url) {
         List<PlayedMedia> playedMediaListForUser = getUsersPlayedMediaList(user);
 
         for (PlayedMedia playedMedia : playedMediaListForUser) {
             if (playedMedia.getUrl().equals(url)) {
-                System.out.println("return true - song has been played");
                 return true;
             }
         }
 
-        System.out.println("returning false - song has not been played");
         return false;
     }
 
     public List<PlayedMedia> getUsersPlayedMediaList(User user) {
         return user.getPlayedMedia();
+    }
+
+    public List<PlayedGenre> getUsersPlayedGenreList(User user) {
+        return user.getPlayedGenre();
     }
 
     public PlayedMedia getMediaFromUsersMediaList(User user, String url) {
@@ -160,15 +154,10 @@ public class UserService {
     }
 
     public Media getMediaByUrl(String url) {
-        System.out.println("fetching in getMedia method with resttemplate");
         ResponseEntity<Media> fetchedMedia = restTemplate.getForEntity("lb://media-service/media/get/" + url, Media.class);
 
-        System.out.println("response entity fetched");
-
         Media mediaToPlay = fetchedMedia.getBody();
-        System.out.println("fetchedMedia.getBody put into mediaToPlay");
 
-        System.out.println("returning mediaToPlay");
         return mediaToPlay;
     }
 }

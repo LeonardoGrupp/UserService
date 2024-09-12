@@ -17,6 +17,8 @@ public class User {
     private String username;
 
     @OneToMany
+    private List<PlayedGenre> playedGenre;
+    @OneToMany
     private List<PlayedMedia> likedMedia;
     @OneToMany
     private List<PlayedMedia> disLikedMedia;
@@ -81,7 +83,17 @@ public class User {
         this.playedMedia = playedMedia;
     }
 
+    public List<PlayedGenre> getPlayedGenre() {
+        return playedGenre;
+    }
+
+    public void setPlayedGenre(List<PlayedGenre> playedGenre) {
+        this.playedGenre = playedGenre;
+    }
+
     public void addMediaToPlayedMedia(PlayedMedia media) {
         playedMedia.add(media);
     }
+
+    public void addGenreToPlayedGenre(PlayedGenre genre) { playedGenre.add(genre); }
 }

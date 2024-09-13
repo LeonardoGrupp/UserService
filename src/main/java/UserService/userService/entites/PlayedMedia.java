@@ -1,7 +1,11 @@
 package UserService.userService.entites;
 
+import UserService.userService.vo.Genre;
 import UserService.userService.vo.Media;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "played_media")
@@ -15,6 +19,8 @@ public class PlayedMedia {
     private String url;
     private String releaseDate;
     private int timesPlayed;
+    @ElementCollection
+    private List<Genre> genres = new ArrayList<>();
 
     public PlayedMedia() {
     }
@@ -28,13 +34,13 @@ public class PlayedMedia {
 //        this.media = null;
     }
 
-    public PlayedMedia(String type, String title, String url, String releaseDate, Media media) {
+    public PlayedMedia(String type, String title, String url, String releaseDate, List<Genre> genres) {
         this.type = type;
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
-//        this.media = media;
+        this.genres = genres;
     }
 
     public long getId() {
@@ -89,11 +95,11 @@ public class PlayedMedia {
         timesPlayed += 1;
     }
 
-//    public Media getMedia() {
-//        return media;
-//    }
-//
-//    public void setMedia(Media media) {
-//        this.media = media;
-//    }
+    public List<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<Genre> genres) {
+        this.genres = genres;
+    }
 }

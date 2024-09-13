@@ -1,13 +1,10 @@
 package UserService.userService.services;
 
+import UserService.userService.entites.PlayedGenre;
 import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
-import UserService.userService.repositories.PlayedMediaRepository;
 import UserService.userService.repositories.UserRepository;
-import UserService.userService.vo.Album;
-import UserService.userService.vo.Artist;
-import UserService.userService.vo.Genre;
-import UserService.userService.vo.Media;
+import UserService.userService.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +20,14 @@ public class UserService {
     private UserRepository userRepository;
     private RestTemplate restTemplate;
     private PlayedMediaService playedMediaService;
+    private PlayedGenreService playedGenreService;
 
     @Autowired
-    public UserService(UserRepository userRepository, RestTemplate restTemplate, PlayedMediaService playedMediaService) {
+    public UserService(UserRepository userRepository, RestTemplate restTemplate, PlayedMediaService playedMediaService, PlayedGenreService playedGenreService) {
         this.userRepository = userRepository;
         this.restTemplate = restTemplate;
         this.playedMediaService = playedMediaService;
+        this.playedGenreService = playedGenreService;
     }
 
     public List<User> findAllUsers() {
@@ -88,63 +87,172 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
         }
 
-        System.out.println("user found - checking to see if song is already played");
+        // get music by url, get video by url, get pod by url -  skicka med type till hasPlayedMediaBefore
+        if (isMusic(url)) {
 
-        // If person has NOT listened to the song before - create it
-        if (!hasListenedBefore(user, url)) {
-            System.out.println("song has not been played before");
+            // If person has NOT listened to the song before - create it
+            if (!hasPlayedMediaBefore(user, url)) {
 
-            System.out.println("fetching media by url");
-            // Get Media
-            Media mediaToPlay = getMediaByUrl(url);
-
-            System.out.println("recieved the mediaToPlay with the resttemplate media inside");
+                // Get Media
+                Music mediaToPlay = getMusicByUrl(url);
 
 
-            if (mediaToPlay == null) {
-                System.out.println("mediaToPlay is null");
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
+                if (mediaToPlay == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
+                }
+                // Creating played media
+                PlayedMedia savedMedia = playedMediaService.createMusicFromUser(mediaToPlay);
+
+                // Saving played media to user
+                user.addMediaToPlayedMedia(savedMedia);
+                userRepository.save(user);
+
+                return savedMedia;
+
+
+            } else {
+                System.out.println("song has been played");
+                // Else if person HAS listened to song - get it from persons list, add play+1 and return
+                PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                mediaBeenPlayed.countPlay();
+                System.out.println("music has been counted play");
+
+                return playedMediaService.save(mediaBeenPlayed);
             }
-
-            System.out.println("Sending Media to create Played Media");
-            PlayedMedia savedMedia = playedMediaService.createFromUser(mediaToPlay);
-
-            user.addMediaToPlayedMedia(savedMedia);
-
-            System.out.println("EVEYRTHING SHOULD BE RETURNING NOW");
-
-            return savedMedia;
-
-
-        } else {
-            System.out.println("song has been played");
-            // Else if person HAS listened to song - get it from persons list, add play+1 and return
-            PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
-
-            mediaBeenPlayed.countPlay();
-            System.out.println("media has been counted play");
-
-            return playedMediaService.save(mediaBeenPlayed);
         }
 
+        if (isVideo(url)) {
+            // If person has NOT listened to the song before - create it
+            if (!hasPlayedMediaBefore(user, url)) {
+
+                // Get Media
+                Video mediaToPlay = getVideoByUrl(url);
+
+
+                if (mediaToPlay == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
+                }
+                // Creating played media
+                PlayedMedia savedMedia = playedMediaService.createVideoFromUser(mediaToPlay);
+
+                // Saving played media to user
+                user.addMediaToPlayedMedia(savedMedia);
+                userRepository.save(user);
+
+                return savedMedia;
+
+
+            } else {
+                System.out.println("video has been played");
+                // Else if person HAS listened to song - get it from persons list, add play+1 and return
+                PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                mediaBeenPlayed.countPlay();
+                System.out.println("video has been counted play");
+
+                return playedMediaService.save(mediaBeenPlayed);
+            }
+        }
+
+        if (isPod(url)) {
+            if (!hasPlayedMediaBefore(user, url)) {
+
+                // Get Media
+                Pod mediaToPlay = getPodByUrl(url);
+
+
+                if (mediaToPlay == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
+                }
+                // Creating played media
+                PlayedMedia savedMedia = playedMediaService.createPodFromUser(mediaToPlay);
+
+                // Saving played media to user
+                user.addMediaToPlayedMedia(savedMedia);
+                userRepository.save(user);
+
+                return savedMedia;
+
+
+            } else {
+                System.out.println("pod has been played");
+                // Else if person HAS listened to song - get it from persons list, add play+1 and return
+                PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                mediaBeenPlayed.countPlay();
+                System.out.println("pod has been counted play");
+
+                return playedMediaService.save(mediaBeenPlayed);
+            }
+        }
+
+        System.out.println("url is neither");
+        return null;
     }
 
-    public boolean hasListenedBefore(User user, String url) {
+    public Boolean isMusic(String url) {
+        ResponseEntity<Boolean> musicExistsInfo = restTemplate.getForEntity("lb://music-service/music/exists/" + url, Boolean.class);
+
+        Boolean exists = musicExistsInfo.getBody();
+
+        if (exists) {
+            System.out.println("url is music");
+            return true;
+        } else {
+            System.out.println("url was not music");
+            return false;
+        }
+    }
+
+    public Boolean isVideo(String url) {
+        ResponseEntity<Boolean> videoExistsInfo = restTemplate.getForEntity("lb://video-service/video/exists/" + url, Boolean.class);
+
+        Boolean exists = videoExistsInfo.getBody();
+
+        if (exists) {
+            System.out.println("url is video");
+            return true;
+        } else {
+            System.out.println("url was not video");
+            return false;
+        }
+    }
+
+    public Boolean isPod(String url) {
+        ResponseEntity<Boolean> podExistsInfo = restTemplate.getForEntity("lb://pod-service/pod/exists/" + url, Boolean.class);
+
+        Boolean exists = podExistsInfo.getBody();
+
+        if (exists) {
+            System.out.println("url is pod");
+            return true;
+        } else {
+            System.out.println("url was not pod");
+            return false;
+        }
+    }
+
+
+
+    public boolean hasPlayedMediaBefore(User user, String url) {
         List<PlayedMedia> playedMediaListForUser = getUsersPlayedMediaList(user);
 
         for (PlayedMedia playedMedia : playedMediaListForUser) {
             if (playedMedia.getUrl().equals(url)) {
-                System.out.println("return true - song has been played");
                 return true;
             }
         }
 
-        System.out.println("returning false - song has not been played");
         return false;
     }
 
     public List<PlayedMedia> getUsersPlayedMediaList(User user) {
         return user.getPlayedMedia();
+    }
+
+    public List<PlayedGenre> getUsersPlayedGenreList(User user) {
+        return user.getPlayedGenre();
     }
 
     public PlayedMedia getMediaFromUsersMediaList(User user, String url) {
@@ -160,15 +268,34 @@ public class UserService {
     }
 
     public Media getMediaByUrl(String url) {
-        System.out.println("fetching in getMedia method with resttemplate");
         ResponseEntity<Media> fetchedMedia = restTemplate.getForEntity("lb://media-service/media/get/" + url, Media.class);
 
-        System.out.println("response entity fetched");
-
         Media mediaToPlay = fetchedMedia.getBody();
-        System.out.println("fetchedMedia.getBody put into mediaToPlay");
 
-        System.out.println("returning mediaToPlay");
+        return mediaToPlay;
+    }
+
+    public Music getMusicByUrl(String url) {
+        ResponseEntity<Music> fetchedMusic = restTemplate.getForEntity("lb://music-service/music/get/" + url, Music.class);
+
+        Music mediaToPlay = fetchedMusic.getBody();
+
+        return mediaToPlay;
+    }
+
+    public Video getVideoByUrl(String url) {
+        ResponseEntity<Video> fetchedVideo = restTemplate.getForEntity("lb://video-service/video/get/" + url, Video.class);
+
+        Video mediaToPlay = fetchedVideo.getBody();
+
+        return mediaToPlay;
+    }
+
+    public Pod getPodByUrl(String url) {
+        ResponseEntity<Pod> fetchedMedia = restTemplate.getForEntity("lb://pod-service/pod/get/" + url, Pod.class);
+
+        Pod mediaToPlay = fetchedMedia.getBody();
+
         return mediaToPlay;
     }
 }

@@ -2,10 +2,7 @@ package UserService.userService.services;
 
 import UserService.userService.entites.PlayedMedia;
 import UserService.userService.repositories.PlayedMediaRepository;
-import UserService.userService.vo.Album;
-import UserService.userService.vo.Artist;
-import UserService.userService.vo.Genre;
-import UserService.userService.vo.Media;
+import UserService.userService.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,34 +29,37 @@ public class PlayedMediaService {
     public PlayedMedia createFromUser(Media media) {
 
         System.out.println("1 Creating played media");
-        PlayedMedia playedMedia = new PlayedMedia(media.getType(), media.getTitle(), media.getUrl(), media.getReleaseDate());
-        System.out.println("1 SUCCESS - Played media created");
-        System.out.println("2 adding media");
-//        playedMedia.setMedia(media);
-        System.out.println("2 media added");
-        System.out.println();
-        System.out.println("2 SUCCESS - Genres, Albums and Artists addded");
-        System.out.println();
-        System.out.println("3 Checking genre:");
-//        for (Genre genre : playedMedia.getMedia().getGenres()) {
-//            System.out.println(genre.getGenre());
-//        }
-//        System.out.println("3 Checking Albums:");
-//        for (Album album : playedMedia.getMedia().getAlbums()) {
-//            System.out.println(album.getName());
-//        }
-//        System.out.println("3 Checking Artists:");
-//        for (Artist artist : playedMedia.getMedia().getArtists()) {
-//            System.out.println(artist.getName());
-//        }
-        System.out.println();
-        System.out.println("3. SUCCESS - existing genres albums and artist");
+        PlayedMedia playedMedia = new PlayedMedia(media.getType(), media.getTitle(), media.getUrl(), media.getReleaseDate(), media.getGenres());
 
-        System.out.println("4. saving played media");
         playedMediaRepository.save(playedMedia);
-        System.out.println("4. SUCCESS SAVED");
 
-        System.out.println("5. returning played media");
+        return playedMedia;
+    }
+
+    public PlayedMedia createMusicFromUser(Music music) {
+        System.out.println("creating played media: music");
+        PlayedMedia playedMedia = new PlayedMedia(music.getType(), music.getTitle(), music.getUrl(), music.getReleaseDate(), music.getGenres());
+
+        playedMediaRepository.save(playedMedia);
+
+        return playedMedia;
+    }
+
+    public PlayedMedia createVideoFromUser(Video video) {
+        System.out.println("creating played media: video");
+        PlayedMedia playedMedia = new PlayedMedia(video.getType(), video.getTitle(), video.getUrl(), video.getReleaseDate(), video.getGenres());
+
+        playedMediaRepository.save(playedMedia);
+
+        return playedMedia;
+    }
+
+    public PlayedMedia createPodFromUser(Pod pod) {
+        System.out.println("creating played media: pod");
+        PlayedMedia playedMedia = new PlayedMedia(pod.getType(), pod.getTitle(), pod.getUrl(), pod.getReleaseDate(), pod.getGenres());
+
+        playedMediaRepository.save(playedMedia);
+
         return playedMedia;
     }
 

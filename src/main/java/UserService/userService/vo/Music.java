@@ -1,32 +1,33 @@
 package UserService.userService.vo;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 
 import java.util.List;
 
+@Entity
+@Table(name = "songs")
 public class Music {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String type;
+    @Column(nullable = false, length = 250)
     private String title;
+    @Column(nullable = false, length = 250)
     private String url;
+    @Column(nullable = false, length = 10)
     private String releaseDate;
     private int playCounter;
     private int likes;
     private int disLikes;
 
-
-    @ElementCollection
-    @CollectionTable(name = "media_genres", joinColumns = @JoinColumn(name = "media_id"))
-    @Column(name = "genres") // Ensure this matches the column in your media_genres table
+    @ManyToMany
     private List<Genre> genres;
 
-    @ElementCollection
+    @ManyToMany
     private List<Album> albums;
 
-    @ElementCollection
+    @ManyToMany
     private List<Artist> artists;
 
     public Music() {

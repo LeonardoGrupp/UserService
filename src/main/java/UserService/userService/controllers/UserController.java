@@ -2,9 +2,7 @@ package UserService.userService.controllers;
 
 import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
-import UserService.userService.services.PlayedMediaService;
 import UserService.userService.services.UserService;
-import UserService.userService.vo.Media;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

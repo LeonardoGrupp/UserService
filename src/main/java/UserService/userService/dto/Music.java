@@ -1,4 +1,4 @@
-package UserService.userService.entities;
+package UserService.userService.dto;
 
 import jakarta.persistence.*;
 

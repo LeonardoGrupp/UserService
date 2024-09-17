@@ -1,6 +1,7 @@
 package UserService.userService.controller;
 
 import UserService.userService.exception.UserNotFoundException;
+import UserService.userService.request.MediaResponse;
 import UserService.userService.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,9 +38,9 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/likedMedia")
-    public ResponseEntity<List<Long>> getLikedMedia(@PathVariable long userId) {
+    public ResponseEntity<List<MediaResponse>> getLikedMedia(@PathVariable long userId) {
         try {
-            List<Long> likedMedia = userService.getLikedMedia(userId);
+            List<MediaResponse> likedMedia = userService.getLikedMedia(userId);
             return ResponseEntity.ok(likedMedia);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

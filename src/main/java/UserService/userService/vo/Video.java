@@ -5,8 +5,9 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "songs")
-public class Music {
+@Table(name = "videos")
+public class Video {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -23,11 +24,11 @@ public class Music {
 
     @ManyToMany
     @JoinTable(
-            name = "songs_genres",
+            name = "video_genres",
             joinColumns = @JoinColumn(name = "songs_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<Genre> genres;
+    private List<VideoGenre> genres;
 
     @ManyToMany
     private List<Album> albums;
@@ -35,12 +36,12 @@ public class Music {
     @ManyToMany
     private List<Artist> artists;
 
-    public Music() {
+    public Video() {
     }
 
-    public Music(long id, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
+    public Video(long id, String type, String title, String url, String releaseDate, List<VideoGenre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
-        this.type = "music";
+        this.type = type;
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;
@@ -113,11 +114,20 @@ public class Music {
         this.disLikes = disLikes;
     }
 
-    public List<Genre> getGenres() {
+//    public List<Genre> getGenres() {
+//        return genres;
+//    }
+//
+//    public void setGenres(List<Genre> genres) {
+//        this.genres = genres;
+//    }
+
+
+    public List<VideoGenre> getGenres() {
         return genres;
     }
 
-    public void setGenres(List<Genre> genres) {
+    public void setGenres(List<VideoGenre> genres) {
         this.genres = genres;
     }
 

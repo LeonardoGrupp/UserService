@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "songs")
-public class Music {
+@Table(name = "pods")
+public class Pod {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -23,8 +23,8 @@ public class Music {
 
     @ManyToMany
     @JoinTable(
-            name = "songs_genres",
-            joinColumns = @JoinColumn(name = "songs_id"),
+            name = "pod_genres",
+            joinColumns = @JoinColumn(name = "pods_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
     private List<Genre> genres;
@@ -35,12 +35,12 @@ public class Music {
     @ManyToMany
     private List<Artist> artists;
 
-    public Music() {
+    public Pod() {
     }
 
-    public Music(long id, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
+    public Pod(long id, String type, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
-        this.type = "music";
+        this.type = type;
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;

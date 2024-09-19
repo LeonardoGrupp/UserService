@@ -3,6 +3,7 @@ package UserService.userService.controllers;
 import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
 import UserService.userService.services.UserService;
+import UserService.userService.vo.Music;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,5 +54,10 @@ public class UserController {
     @GetMapping("/play/{id}")
     public ResponseEntity<PlayedMedia> playMedia(@PathVariable("id") long id, @RequestParam("url") String url) {
         return ResponseEntity.ok(userService.playMedia(id, url));
+    }
+
+    @GetMapping("/songtest/{url}")
+    public ResponseEntity<Music> testingMusic(@PathVariable("url") String url) {
+        return ResponseEntity.ok(userService.testingMusic(url));
     }
 }

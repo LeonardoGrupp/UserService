@@ -1,9 +1,11 @@
 package UserService.userService.services;
 
 import UserService.userService.entites.PlayedGenre;
+import UserService.userService.entites.User;
 import UserService.userService.repositories.PlayedGenreRepository;
 import UserService.userService.vo.Genre;
 import UserService.userService.vo.Music;
+import UserService.userService.vo.VideoGenre;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +26,24 @@ public class PlayedGenreService {
         return playedGenreRepository.findAll();
     }
 
+    public PlayedGenre findPlayedGenreByName(String genre) {
+        return playedGenreRepository.findPlayedGenreByGenre(genre);
+    }
+
     public PlayedGenre create(PlayedGenre playedGenre) {
         return playedGenreRepository.save(playedGenre);
+    }
+
+    public PlayedGenre createFromMusicGenres(Genre genre) {
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+    }
+
+    public PlayedGenre createFromPodGenres(Genre genre) {
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+    }
+
+    public PlayedGenre createFromVideoGenres(VideoGenre genre) {
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
     }
 
     public List<PlayedGenre> createFromMusic(Music music) {

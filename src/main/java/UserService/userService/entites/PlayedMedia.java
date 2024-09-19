@@ -18,13 +18,13 @@ public class PlayedMedia {
     private String url;
     private String releaseDate;
     private int timesPlayed;
-//    @ManyToMany
-//    @JoinTable(
-//            name = "played_media_genres",
-//            joinColumns = @JoinColumn(name = "played_media_id"),
-//            inverseJoinColumns = @JoinColumn(name = "genre_id")
-//    )
-//    private List<Genre> genres = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "played_media_genres",
+            joinColumns = @JoinColumn(name = "played_media_id"),
+            inverseJoinColumns = @JoinColumn(name = "played_genres_id")
+    )
+    private List<PlayedGenre> genres = new ArrayList<>();
 
     public PlayedMedia() {
     }
@@ -37,13 +37,13 @@ public class PlayedMedia {
         this.timesPlayed += 1;
     }
 
-    public PlayedMedia(String type, String title, String url, String releaseDate, List<Genre> genres) {
+    public PlayedMedia(String type, String title, String url, String releaseDate, List<PlayedGenre> genres) {
         this.type = type;
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
-//        this.genres = genres;
+        this.genres = genres;
     }
 
     public long getId() {
@@ -94,15 +94,20 @@ public class PlayedMedia {
         this.timesPlayed = timesPlayed;
     }
 
+    public List<PlayedGenre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<PlayedGenre> genres) {
+        this.genres = genres;
+    }
+
     public void countPlay() {
         timesPlayed += 1;
     }
 
-//    public List<Genre> getGenres() {
-//        return genres;
-//    }
-//
-//    public void setGenres(List<Genre> genres) {
-//        this.genres = genres;
-//    }
+    public void addPlayedGenreToMedia(PlayedGenre playedGenre) {
+        genres.add(playedGenre);
+    }
+
 }

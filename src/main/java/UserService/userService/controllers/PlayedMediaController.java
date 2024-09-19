@@ -28,4 +28,9 @@ public class PlayedMediaController {
     public ResponseEntity<PlayedMedia> create(@RequestBody PlayedMedia playedMedia) {
         return ResponseEntity.ok(playedMediaService.create(playedMedia));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable("id") long id) {
+        return ResponseEntity.ok(playedMediaService.delete(id));
+    }
 }

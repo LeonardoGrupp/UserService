@@ -5,6 +5,7 @@ import UserService.userService.vo.Music;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -15,6 +16,10 @@ public class MusicService {
     @Autowired
     public MusicService(MusicRepository musicRepository) {
         this.musicRepository = musicRepository;
+    }
+
+    public List<Music> findAllMusic() {
+        return musicRepository.findAll();
     }
 
     public boolean musicExistsByUrl(String url) {

@@ -289,7 +289,7 @@ public class UserService {
 
                 System.out.println();
                 System.out.println("Genres:");
-                for (VideoGenre genre : mediaToPlay.getGenres()) {
+                for (Genre genre : mediaToPlay.getGenres()) {
                     System.out.println(genre.getGenre());
                 }
 
@@ -303,7 +303,7 @@ public class UserService {
 
                 // Check all genres in music media
                 System.out.println("Checking genre:");
-                for (VideoGenre genre : mediaToPlay.getGenres()) {
+                for (Genre genre : mediaToPlay.getGenres()) {
                     System.out.println(genre.getGenre());
 
                     // if the genre has not been played - create it
@@ -449,7 +449,7 @@ public class UserService {
         return false;
     }
 
-    public boolean hasPlayedVideoGenreBefore(User user, VideoGenre genre) {
+    public boolean hasPlayedVideoGenreBefore(User user, Genre genre) {
         List<PlayedGenre> playedGenreListForUser = getUsersPlayedGenreList(user);
 
 

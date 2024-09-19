@@ -24,11 +24,11 @@ public class Video {
 
     @ManyToMany
     @JoinTable(
-            name = "video_genres",
-            joinColumns = @JoinColumn(name = "songs_id"),
+            name = "videos_genres",
+            joinColumns = @JoinColumn(name = "videos_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<VideoGenre> genres;
+    private List<Genre> genres;
 
     @ManyToMany
     private List<Album> albums;
@@ -39,9 +39,9 @@ public class Video {
     public Video() {
     }
 
-    public Video(long id, String type, String title, String url, String releaseDate, List<VideoGenre> genres, List<Album> albums, List<Artist> artists) {
+    public Video(long id, String type, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
-        this.type = type;
+        this.type = "video";
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;
@@ -114,20 +114,11 @@ public class Video {
         this.disLikes = disLikes;
     }
 
-//    public List<Genre> getGenres() {
-//        return genres;
-//    }
-//
-//    public void setGenres(List<Genre> genres) {
-//        this.genres = genres;
-//    }
-
-
-    public List<VideoGenre> getGenres() {
+    public List<Genre> getGenres() {
         return genres;
     }
 
-    public void setGenres(List<VideoGenre> genres) {
+    public void setGenres(List<Genre> genres) {
         this.genres = genres;
     }
 

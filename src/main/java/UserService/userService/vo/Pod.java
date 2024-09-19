@@ -23,7 +23,7 @@ public class Pod {
 
     @ManyToMany
     @JoinTable(
-            name = "pod_genres",
+            name = "pods_genres",
             joinColumns = @JoinColumn(name = "pods_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
@@ -40,7 +40,7 @@ public class Pod {
 
     public Pod(long id, String type, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
-        this.type = type;
+        this.type = "pod";
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;

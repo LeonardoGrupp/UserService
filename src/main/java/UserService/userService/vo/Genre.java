@@ -3,7 +3,8 @@ package UserService.userService.vo;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "music_genres")
+//@Table(name = "music_genres")
+@Table(name = "genres")
 public class Genre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

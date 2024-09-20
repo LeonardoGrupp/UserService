@@ -372,6 +372,123 @@ public class UserService {
         return null;
     }
 
+    public PlayedMedia likeMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
+
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to like the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    playedMedia.likeMedia();
+
+                    playedMediaService.save(playedMedia);
+
+                    System.out.println("media has been liked");
+
+                    return playedMedia;
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
+    public PlayedMedia disLikeMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
+
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to dislike the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    playedMedia.disLikeMedia();
+
+                    playedMediaService.save(playedMedia);
+
+                    System.out.println("media has been disliked");
+
+                    return playedMedia;
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
+    public PlayedMedia resetLikesAndDisLikesOfMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
+
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to reset likes and dislike of the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    playedMedia.resetLikeAndDisLikeMedia();
+
+                    playedMediaService.save(playedMedia);
+
+                    System.out.println("media likes and dislikes has been reset");
+
+                    return playedMedia;
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
     public Music testingMusic(String url) {
         Music music = getMusicByUrl(url);
 

@@ -18,8 +18,10 @@ public class PlayedMedia {
     private String url;
     private String releaseDate;
     private int timesPlayed;
-    private boolean like;
-    private boolean disLike;
+    @Column(name = "is_liked")
+    private boolean isLiked;
+    @Column(name = "is_disliked")
+    private boolean isDisliked;
     @ManyToMany
     @JoinTable(
             name = "played_media_genres",
@@ -37,8 +39,8 @@ public class PlayedMedia {
         this.url = url;
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
-        this.like = false;
-        this.disLike = false;
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 
     public PlayedMedia(String type, String title, String url, String releaseDate, List<PlayedGenre> genres) {
@@ -48,8 +50,8 @@ public class PlayedMedia {
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
         this.genres = genres;
-        this.like = false;
-        this.disLike = false;
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 
     public long getId() {
@@ -100,20 +102,20 @@ public class PlayedMedia {
         this.timesPlayed = timesPlayed;
     }
 
-    public boolean isLike() {
-        return like;
+    public boolean isLiked() {
+        return isLiked;
     }
 
-    public void setLike(boolean like) {
-        this.like = like;
+    public void setLiked(boolean liked) {
+        isLiked = liked;
     }
 
-    public boolean isDisLike() {
-        return disLike;
+    public boolean isDisliked() {
+        return isDisliked;
     }
 
-    public void setDisLike(boolean disLike) {
-        this.disLike = disLike;
+    public void setDisliked(boolean disliked) {
+        isDisliked = disliked;
     }
 
     public List<PlayedGenre> getGenres() {
@@ -133,18 +135,18 @@ public class PlayedMedia {
     }
 
     public void likeMedia() {
-        this.like = true;
-        this.disLike = false;
+        this.isLiked = true;
+        this.isDisliked = false;
     }
 
     public void disLikeMedia() {
-        this.like = false;
-        this.disLike = true;
+        this.isLiked = false;
+        this.isDisliked = true;
     }
 
     public void resetLikeAndDisLikeMedia() {
-        this.like = false;
-        this.disLike = false;
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 
 }

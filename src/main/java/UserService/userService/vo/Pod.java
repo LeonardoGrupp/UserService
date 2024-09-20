@@ -30,9 +30,19 @@ public class Pod {
     private List<Genre> genres;
 
     @ManyToMany
+    @JoinTable(
+            name = "pods_albums",
+            joinColumns = @JoinColumn(name = "pods_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
     private List<Album> albums;
 
     @ManyToMany
+    @JoinTable(
+            name = "pods_artists",
+            joinColumns = @JoinColumn(name = "pods_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
     private List<Artist> artists;
 
     public Pod() {

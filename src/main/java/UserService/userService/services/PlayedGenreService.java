@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlayedGenreService {
@@ -26,6 +27,12 @@ public class PlayedGenreService {
 
     public PlayedGenre findPlayedGenreByName(String genre) {
         return playedGenreRepository.findPlayedGenreByGenre(genre);
+    }
+
+    public PlayedGenre findPlayedGenreById(long id) {
+        Optional<PlayedGenre> optionalPlayedGenre = playedGenreRepository.findById(id);
+
+        return optionalPlayedGenre.orElse(null);
     }
 
     public PlayedGenre create(PlayedGenre playedGenre) {
@@ -59,5 +66,17 @@ public class PlayedGenreService {
 
     public PlayedGenre save(PlayedGenre playedGenre) {
         return playedGenreRepository.save(playedGenre);
+    }
+
+    public String delete(long id) {
+        PlayedGenre genreToDelete = findPlayedGenreById(id);
+
+        if (genreToDelete == null) {
+            System.out.println("PlayedGenreService() - couldnt find PlayedGenre with id: " + id);
+        }
+
+        playedGenreRepository.delete(genreToDelete);
+
+        return "PlayedGenre deleted";
     }
 }

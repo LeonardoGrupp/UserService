@@ -31,9 +31,19 @@ public class Video {
     private List<Genre> genres;
 
     @ManyToMany
+    @JoinTable(
+            name = "videos_albums",
+            joinColumns = @JoinColumn(name = "videos_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
     private List<Album> albums;
 
     @ManyToMany
+    @JoinTable(
+            name = "videos_artists",
+            joinColumns = @JoinColumn(name = "videos_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
     private List<Artist> artists;
 
     public Video() {

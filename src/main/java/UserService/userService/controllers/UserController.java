@@ -66,6 +66,11 @@ public class UserController {
         return ResponseEntity.ok(userService.disLikeMedia(id, url));
     }
 
+    @GetMapping("/resetlikes/{id}")
+    public ResponseEntity<PlayedMedia> resetLikesAndDisLikes(@PathVariable("id") long id, @RequestParam("url") String url) {
+        return ResponseEntity.ok(userService.resetLikesAndDisLikesOfMedia(id, url));
+    }
+
     @GetMapping("/songtest/{url}")
     public ResponseEntity<Music> testingMusic(@PathVariable("url") String url) {
         return ResponseEntity.ok(userService.testingMusic(url));

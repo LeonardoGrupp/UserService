@@ -29,4 +29,9 @@ public class PlayedGenreController {
     public ResponseEntity<PlayedGenre> create(@RequestBody PlayedGenre playedGenre) {
         return ResponseEntity.ok(playedGenreService.create(playedGenre));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable("id") long id) {
+        return ResponseEntity.ok(playedGenreService.delete(id));
+    }
 }

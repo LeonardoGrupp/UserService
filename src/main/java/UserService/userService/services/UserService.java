@@ -13,7 +13,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -745,5 +748,36 @@ public class UserService {
         }
 
         return videoToPlay;
+    }
+
+    public List<PlayedMedia> recommendations(long id) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            System.out.println("USER NULL");
+            return null;
+        }
+
+        // GENRES
+        List<PlayedGenre> usersGenres = user.getPlayedGenre();
+
+        List<PlayedGenre> sortedGenreList = usersGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+        System.out.println("");
+        System.out.println("GENRE: SORTED LIST");
+        for (PlayedGenre genre : sortedGenreList) {
+            System.out.println(genre.getGenre() + " played: " + genre.getTotalPlays() + " times.");
+        }
+
+        // MEDIA
+        List<PlayedMedia> usersMedia = user.getPlayedMedia();
+
+        List<PlayedMedia> sortedMediaList = usersMedia.stream().sorted(Comparator.comparingInt(PlayedMedia::getTimesPlayed).reversed()).collect(Collectors.toList());
+        System.out.println("");
+        System.out.println("MEDIA: SORTED LIST:");
+        for (PlayedMedia media : sortedMediaList) {
+            System.out.println(media.getTitle() + " played: " + media.getTimesPlayed() + " times.");
+        }
+
+        return sortedMediaList;
     }
 }

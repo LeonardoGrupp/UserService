@@ -91,4 +91,9 @@ public class UserController {
     public ResponseEntity<Music> testingMusic(@PathVariable("url") String url) {
         return ResponseEntity.ok(userService.testingMusic(url));
     }
+
+    @GetMapping("/recommendations/{id}")
+    public ResponseEntity<List<PlayedMedia>> recommendations(@PathVariable("id") long id) {
+        return ResponseEntity.ok(userService.recommendations(id));
+    }
 }

@@ -6,6 +6,7 @@ public class Album {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(name = "album_name")
     private String name;
 
     public Album() {

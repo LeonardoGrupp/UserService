@@ -10,7 +10,12 @@ public class PlayedGenre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String genre;
+    @Column(name = "total_plays")
     private int totalPlays;
+    @Column(name = "is_liked")
+    private boolean isLiked;
+    @Column(name = "is_disliked")
+    private boolean isDisliked;
 
     public PlayedGenre() {
     }
@@ -18,6 +23,8 @@ public class PlayedGenre {
     public PlayedGenre(String genre) {
         this.genre = genre;
         this.totalPlays += 1;
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 
     public long getId() {
@@ -44,7 +51,37 @@ public class PlayedGenre {
         this.totalPlays = totalPlays;
     }
 
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
+    }
+
+    public boolean isDisliked() {
+        return isDisliked;
+    }
+
+    public void setDisliked(boolean disliked) {
+        isDisliked = disliked;
+    }
+
     public void countPlay() {
         this.totalPlays += 1;
+    }
+
+    public void likeGenre() {
+        this.isDisliked = false;
+        this.isLiked = true;
+    }
+    public void disLikeGenre() {
+        this.isLiked = false;
+        this.isDisliked = true;
+    }
+
+    public void resetLikeAndDisLikeGenre() {
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 }

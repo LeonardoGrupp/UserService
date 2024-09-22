@@ -184,8 +184,7 @@ public class UserService {
 
                 return playedMediaService.save(mediaBeenPlayed);
             }
-        }
-        else if(isPod(url)) {
+        } else if (isPod(url)) {
             System.out.println("its pod");
 
             // If person has NOT watched the video before - create it
@@ -275,8 +274,7 @@ public class UserService {
 
                 return playedMediaService.save(mediaBeenPlayed);
             }
-        }
-        else if(isVideo(url)) {
+        } else if (isVideo(url)) {
             System.out.println("its video");
 
             // If person has NOT watched the video before - create it
@@ -422,6 +420,35 @@ public class UserService {
         }
     }
 
+    public PlayedGenre likeGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                System.out.println("Liking played genre: " + genreName);
+                playedGenre.likeGenre();
+
+                System.out.println("Saving played genre");
+                playedGenreService.save(playedGenre);
+
+                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
+                user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+
+                System.out.println("saving user");
+                userRepository.save(user);
+
+                System.out.println("returning played genre");
+                return playedGenre;
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
+    }
+
     public PlayedMedia disLikeMedia(long id, String url) {
         // Get User
         User user = findUserById(id);
@@ -470,6 +497,35 @@ public class UserService {
         }
     }
 
+    public PlayedGenre disLikeGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                System.out.println("Disliking played genre: " + genreName);
+                playedGenre.disLikeGenre();
+
+                System.out.println("Saving played genre");
+                playedGenreService.save(playedGenre);
+
+                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
+                user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+
+                System.out.println("saving user");
+                userRepository.save(user);
+
+                System.out.println("returning played genre");
+                return playedGenre;
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
+    }
+
     public PlayedMedia resetLikesAndDisLikesOfMedia(long id, String url) {
         // Get User
         User user = findUserById(id);
@@ -515,6 +571,36 @@ public class UserService {
             System.out.println("ERROR: kept going even though it shouldnt have");
             return null;
         }
+    }
+
+    public PlayedGenre resetLikesAndDisLikesOfGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                if (!playedGenre.isLiked() && !playedGenre.isDisliked()) {
+                    System.out.println("Genre is already false on both like and dislike - doing nothing");
+                    return playedGenre;
+                } else {
+                    playedGenre.resetLikeAndDisLikeGenre();
+
+                    playedGenreService.save(playedGenre);
+
+                    System.out.println("genre likes and dislikes has been reset");
+
+                    user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+                    userRepository.save(user);
+
+                    return playedGenre;
+                }
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
     }
 
     public Music testingMusic(String url) {

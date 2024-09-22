@@ -54,6 +54,18 @@ public class PlayedMedia {
         this.isDisliked = false;
     }
 
+    public PlayedMedia(long id, String type, String title, String url, String releaseDate, int timesPlayed, boolean isLiked, boolean isDisliked) {
+        this.id = id;
+        this.type = type;
+        this.title = title;
+        this.url = url;
+        this.releaseDate = releaseDate;
+        this.timesPlayed = timesPlayed;
+        this.isLiked = isLiked;
+        this.isDisliked = isDisliked;
+        this.genres = new ArrayList<>();
+    }
+
     public long getId() {
         return id;
     }
@@ -135,8 +147,8 @@ public class PlayedMedia {
     }
 
     public void likeMedia() {
-        this.isLiked = true;
         this.isDisliked = false;
+        this.isLiked = true;
     }
 
     public void disLikeMedia() {

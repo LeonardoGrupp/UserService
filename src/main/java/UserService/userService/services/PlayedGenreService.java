@@ -26,7 +26,7 @@ public class PlayedGenreService {
     }
 
     public PlayedGenre findPlayedGenreByName(String genre) {
-        return playedGenreRepository.findPlayedGenreByGenre(genre);
+        return playedGenreRepository.findPlayedGenreByGenreIgnoreCase(genre);
     }
 
     public PlayedGenre findPlayedGenreById(long id) {

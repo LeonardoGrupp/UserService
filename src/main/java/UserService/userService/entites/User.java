@@ -94,4 +94,23 @@ public class User {
     }
 
     public void addGenreToPlayedGenre(PlayedGenre genre) { playedGenre.add(genre); }
+
+    public void removeOrAddMediaFromDislikedAndLikedMedia(PlayedMedia media) {
+        // If media is NOT disliked and is in dislike-list - REMOVE
+        if (!media.isDisliked() && disLikedMedia.contains(media)) {
+            disLikedMedia.remove(media);
+        }
+        // if media IS disliked but NOT in dislike-list - ADD
+        if (media.isDisliked() && !disLikedMedia.contains(media)) {
+            disLikedMedia.add(media);
+        }
+        // If Media is NOT liked and is in like-list - REMOVE
+        if (!media.isLiked() && likedMedia.contains(media)) {
+            likedMedia.remove(media);
+        }
+        // If Media IS liked but NOT in like-list - ADD
+        if (media.isLiked() && !likedMedia.contains(media)) {
+            likedMedia.add(media);
+        }
+    }
 }

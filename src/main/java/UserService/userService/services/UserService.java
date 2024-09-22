@@ -397,13 +397,24 @@ public class UserService {
 
             for (PlayedMedia playedMedia : usersPlayedMedia) {
                 if (playedMedia.getUrl().equals(url)) {
-                    playedMedia.likeMedia();
+                    if (playedMedia.isLiked() && user.getLikedMedia().contains(playedMedia)) {
+                        System.out.println("Media already liked - doing nothing");
+                        return playedMedia;
+                    } else {
 
-                    playedMediaService.save(playedMedia);
+                        playedMedia.likeMedia();
 
-                    System.out.println("media has been liked");
+                        playedMediaService.save(playedMedia);
 
-                    return playedMedia;
+                        System.out.println("media has been liked");
+
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
+
                 }
             }
             System.out.println("ERROR: kept going even though it shouldnt have");
@@ -436,13 +447,22 @@ public class UserService {
 
             for (PlayedMedia playedMedia : usersPlayedMedia) {
                 if (playedMedia.getUrl().equals(url)) {
-                    playedMedia.disLikeMedia();
+                    if (playedMedia.isDisliked() && user.getDisLikedMedia().contains(playedMedia)) {
+                        System.out.println("Media already disliked - doing nothing");
+                        return playedMedia;
+                    } else {
+                        playedMedia.disLikeMedia();
 
-                    playedMediaService.save(playedMedia);
+                        playedMediaService.save(playedMedia);
 
-                    System.out.println("media has been disliked");
+                        System.out.println("media has been disliked");
 
-                    return playedMedia;
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
                 }
             }
             System.out.println("ERROR: kept going even though it shouldnt have");
@@ -475,13 +495,21 @@ public class UserService {
 
             for (PlayedMedia playedMedia : usersPlayedMedia) {
                 if (playedMedia.getUrl().equals(url)) {
-                    playedMedia.resetLikeAndDisLikeMedia();
+                    if (!playedMedia.isLiked() && !playedMedia.isDisliked()) {
+                        System.out.println("Media is already false on both like and dislike - doing nothing");
+                        return playedMedia;
+                    } else {
+                        playedMedia.resetLikeAndDisLikeMedia();
 
-                    playedMediaService.save(playedMedia);
+                        playedMediaService.save(playedMedia);
 
-                    System.out.println("media likes and dislikes has been reset");
+                        System.out.println("media likes and dislikes has been reset");
 
-                    return playedMedia;
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
                 }
             }
             System.out.println("ERROR: kept going even though it shouldnt have");

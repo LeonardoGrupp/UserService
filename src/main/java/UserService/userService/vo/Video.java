@@ -4,33 +4,52 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
-@Embeddable
+@Entity
+@Table(name = "videos")
 public class Video {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String type;
+    @Column(nullable = false, length = 250)
     private String title;
+    @Column(nullable = false, length = 250)
     private String url;
+    @Column(nullable = false, length = 10)
     private String releaseDate;
     private int playCounter;
     private int likes;
     private int disLikes;
 
-
-    @ElementCollection
-    @CollectionTable(name = "media_genres", joinColumns = @JoinColumn(name = "media_id"))
-    @Column(name = "genres") // Ensure this matches the column in your media_genres table
+    @ManyToMany
+    @JoinTable(
+            name = "videos_genres",
+            joinColumns = @JoinColumn(name = "videos_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
     private List<Genre> genres;
 
-    @ElementCollection
+    @ManyToMany
+    @JoinTable(
+            name = "videos_albums",
+            joinColumns = @JoinColumn(name = "videos_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
     private List<Album> albums;
 
-    @ElementCollection
+    @ManyToMany
+    @JoinTable(
+            name = "videos_artists",
+            joinColumns = @JoinColumn(name = "videos_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
     private List<Artist> artists;
 
     public Video() {
     }
 
-    public Video(long id, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
+    public Video(long id, String type, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
         this.type = "video";
         this.title = title;

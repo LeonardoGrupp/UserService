@@ -1,7 +1,5 @@
 package UserService.userService.entites;
 
-import UserService.userService.vo.Media;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,6 +16,10 @@ public class User {
 
     @OneToMany
     private List<PlayedGenre> playedGenre;
+    @OneToMany
+    private List<PlayedGenre> likedGenre;
+    @OneToMany
+    private List<PlayedGenre> disLikedGenre;
     @OneToMany
     private List<PlayedMedia> likedMedia;
     @OneToMany
@@ -91,9 +93,63 @@ public class User {
         this.playedGenre = playedGenre;
     }
 
+    public List<PlayedGenre> getLikedGenre() {
+        return likedGenre;
+    }
+
+    public void setLikedGenre(List<PlayedGenre> likedGenre) {
+        this.likedGenre = likedGenre;
+    }
+
+    public List<PlayedGenre> getDisLikedGenre() {
+        return disLikedGenre;
+    }
+
+    public void setDisLikedGenre(List<PlayedGenre> disLikedGenre) {
+        this.disLikedGenre = disLikedGenre;
+    }
+
     public void addMediaToPlayedMedia(PlayedMedia media) {
         playedMedia.add(media);
     }
 
     public void addGenreToPlayedGenre(PlayedGenre genre) { playedGenre.add(genre); }
+
+    public void removeOrAddMediaFromDislikedAndLikedMedia(PlayedMedia media) {
+        // If media is NOT disliked and is in dislike-list - REMOVE
+        if (!media.isDisliked() && disLikedMedia.contains(media)) {
+            disLikedMedia.remove(media);
+        }
+        // if media IS disliked but NOT in dislike-list - ADD
+        if (media.isDisliked() && !disLikedMedia.contains(media)) {
+            disLikedMedia.add(media);
+        }
+        // If Media is NOT liked and is in like-list - REMOVE
+        if (!media.isLiked() && likedMedia.contains(media)) {
+            likedMedia.remove(media);
+        }
+        // If Media IS liked but NOT in like-list - ADD
+        if (media.isLiked() && !likedMedia.contains(media)) {
+            likedMedia.add(media);
+        }
+    }
+
+    public void removeOrAddGenreFromDislikedAndLikedGenre(PlayedGenre genre) {
+        // If Genre is NOT disliked and is in dislike-list - REMOVE
+        if (!genre.isDisliked() && disLikedGenre.contains(genre)) {
+            disLikedGenre.remove(genre);
+        }
+        // If Genre IS disliked but NOT in dislike-list - ADD
+        if (genre.isDisliked() && !disLikedGenre.contains(genre)) {
+            disLikedGenre.add(genre);
+        }
+        // If Genre is NOT liked and is in like-list - REMOVE
+        if (!genre.isLiked() && likedGenre.contains(genre)) {
+            likedGenre.remove(genre);
+        }
+        // If Genre IS liked but NOT in like-list - ADD
+        if (genre.isLiked() && !likedGenre.contains(genre)) {
+            likedGenre.add(genre);
+        }
+    }
 }

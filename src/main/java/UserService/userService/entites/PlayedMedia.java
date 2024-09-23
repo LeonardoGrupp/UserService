@@ -1,7 +1,6 @@
 package UserService.userService.entites;
 
 import UserService.userService.vo.Genre;
-import UserService.userService.vo.Media;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -19,8 +18,17 @@ public class PlayedMedia {
     private String url;
     private String releaseDate;
     private int timesPlayed;
-    @ElementCollection
-    private List<Genre> genres = new ArrayList<>();
+    @Column(name = "is_liked")
+    private boolean isLiked;
+    @Column(name = "is_disliked")
+    private boolean isDisliked;
+    @ManyToMany
+    @JoinTable(
+            name = "played_media_genres",
+            joinColumns = @JoinColumn(name = "played_media_id"),
+            inverseJoinColumns = @JoinColumn(name = "played_genres_id")
+    )
+    private List<PlayedGenre> genres = new ArrayList<>();
 
     public PlayedMedia() {
     }
@@ -31,16 +39,31 @@ public class PlayedMedia {
         this.url = url;
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
-//        this.media = null;
+        this.isLiked = false;
+        this.isDisliked = false;
     }
 
-    public PlayedMedia(String type, String title, String url, String releaseDate, List<Genre> genres) {
+    public PlayedMedia(String type, String title, String url, String releaseDate, List<PlayedGenre> genres) {
         this.type = type;
         this.title = title;
         this.url = url;
         this.releaseDate = releaseDate;
         this.timesPlayed += 1;
         this.genres = genres;
+        this.isLiked = false;
+        this.isDisliked = false;
+    }
+
+    public PlayedMedia(long id, String type, String title, String url, String releaseDate, int timesPlayed, boolean isLiked, boolean isDisliked) {
+        this.id = id;
+        this.type = type;
+        this.title = title;
+        this.url = url;
+        this.releaseDate = releaseDate;
+        this.timesPlayed = timesPlayed;
+        this.isLiked = isLiked;
+        this.isDisliked = isDisliked;
+        this.genres = new ArrayList<>();
     }
 
     public long getId() {
@@ -91,15 +114,51 @@ public class PlayedMedia {
         this.timesPlayed = timesPlayed;
     }
 
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
+    }
+
+    public boolean isDisliked() {
+        return isDisliked;
+    }
+
+    public void setDisliked(boolean disliked) {
+        isDisliked = disliked;
+    }
+
+    public List<PlayedGenre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<PlayedGenre> genres) {
+        this.genres = genres;
+    }
+
     public void countPlay() {
         timesPlayed += 1;
     }
 
-    public List<Genre> getGenres() {
-        return genres;
+    public void addPlayedGenreToMedia(PlayedGenre playedGenre) {
+        genres.add(playedGenre);
     }
 
-    public void setGenres(List<Genre> genres) {
-        this.genres = genres;
+    public void likeMedia() {
+        this.isDisliked = false;
+        this.isLiked = true;
     }
+
+    public void disLikeMedia() {
+        this.isLiked = false;
+        this.isDisliked = true;
+    }
+
+    public void resetLikeAndDisLikeMedia() {
+        this.isLiked = false;
+        this.isDisliked = false;
+    }
+
 }

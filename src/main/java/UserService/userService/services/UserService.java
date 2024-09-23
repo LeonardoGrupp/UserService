@@ -12,22 +12,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     private UserRepository userRepository;
-    private RestTemplate restTemplate;
     private PlayedMediaService playedMediaService;
     private PlayedGenreService playedGenreService;
+    private MusicService musicService;
+    private PodService podService;
+    private VideoService videoService;
 
     @Autowired
-    public UserService(UserRepository userRepository, RestTemplate restTemplate, PlayedMediaService playedMediaService, PlayedGenreService playedGenreService) {
+    public UserService(UserRepository userRepository, PlayedMediaService playedMediaService,
+                       PlayedGenreService playedGenreService, MusicService musicService,
+                       VideoService videoService, PodService podService) {
         this.userRepository = userRepository;
-        this.restTemplate = restTemplate;
         this.playedMediaService = playedMediaService;
         this.playedGenreService = playedGenreService;
+        this.musicService = musicService;
+        this.podService = podService;
+        this.videoService = videoService;
     }
 
     public List<User> findAllUsers() {
@@ -82,30 +92,82 @@ public class UserService {
         System.out.println("finding user");
 
 
-
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
         }
 
         // get music by url, get video by url, get pod by url -  skicka med type till hasPlayedMediaBefore
         if (isMusic(url)) {
+            System.out.println("its music");
 
             // If person has NOT listened to the song before - create it
             if (!hasPlayedMediaBefore(user, url)) {
+                System.out.println("music has not been played");
 
                 // Get Media
                 Music mediaToPlay = getMusicByUrl(url);
+                System.out.println("recieved music");
+
+                System.out.println();
+                System.out.println("Genres:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+                }
 
 
                 if (mediaToPlay == null) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
                 }
-                // Creating played media
-                PlayedMedia savedMedia = playedMediaService.createMusicFromUser(mediaToPlay);
 
+                System.out.println("Creating empty playedGenreList");
+                List<PlayedGenre> playedGenreList = new ArrayList<>();
+
+                // Check all genres in music media
+                System.out.println("Checking genre:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+
+                    // if the genre has not been played - create it
+                    if (!hasPlayedGenreBefore(user, genre)) {
+                        System.out.println("genre was not played before - creating");
+                        PlayedGenre playedGenre = playedGenreService.createFromMusicGenres(genre);
+
+                        user.addGenreToPlayedGenre(playedGenre);
+                        userRepository.save(user);
+
+                        playedGenreList.add(playedGenre);
+
+                    } else {
+                        System.out.println("genre was found - adding +1");
+                        // add +1 in play
+                        PlayedGenre playedGenre = playedGenreService.findPlayedGenreByName(genre.getGenre());
+                        playedGenre.countPlay();
+                        PlayedGenre savedGenre = playedGenreService.save(playedGenre);
+
+                        playedGenreList.add(savedGenre);
+
+                    }
+                }
+
+                PlayedMedia savedMedia;
+                System.out.println("sending music to playedMediaService.createMusicFromUser()");
+                // Creating played media
+                if (playedGenreList.isEmpty()) {
+                    System.out.println("UserService: PlayedGenreList was empty!!!");
+                    savedMedia = playedMediaService.createMusicFromUser(mediaToPlay);
+                } else {
+                    System.out.println("UserService: playedGenreList was not empty - sending list to create");
+                    savedMedia = playedMediaService.createMusicFromUserWithList(mediaToPlay, playedGenreList);
+                }
+
+                System.out.println("media came back and created");
+
+                System.out.println("adding music to users played media list");
                 // Saving played media to user
                 user.addMediaToPlayedMedia(savedMedia);
                 userRepository.save(user);
+
+                System.out.println("returning saved media");
 
                 return savedMedia;
 
@@ -116,72 +178,192 @@ public class UserService {
                 PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
 
                 mediaBeenPlayed.countPlay();
+                for (PlayedGenre genre : mediaBeenPlayed.getGenres()) {
+                    genre.countPlay();
+                    playedGenreService.save(genre);
+                    System.out.println("counted play for genre");
+                }
                 System.out.println("music has been counted play");
 
                 return playedMediaService.save(mediaBeenPlayed);
             }
-        }
+        } else if (isPod(url)) {
+            System.out.println("its pod");
 
-        if (isVideo(url)) {
-            // If person has NOT listened to the song before - create it
+            // If person has NOT watched the video before - create it
             if (!hasPlayedMediaBefore(user, url)) {
-
-                // Get Media
-                Video mediaToPlay = getVideoByUrl(url);
-
-
-                if (mediaToPlay == null) {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
-                }
-                // Creating played media
-                PlayedMedia savedMedia = playedMediaService.createVideoFromUser(mediaToPlay);
-
-                // Saving played media to user
-                user.addMediaToPlayedMedia(savedMedia);
-                userRepository.save(user);
-
-                return savedMedia;
-
-
-            } else {
-                System.out.println("video has been played");
-                // Else if person HAS listened to song - get it from persons list, add play+1 and return
-                PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
-
-                mediaBeenPlayed.countPlay();
-                System.out.println("video has been counted play");
-
-                return playedMediaService.save(mediaBeenPlayed);
-            }
-        }
-
-        if (isPod(url)) {
-            if (!hasPlayedMediaBefore(user, url)) {
+                System.out.println("pod has not been played");
 
                 // Get Media
                 Pod mediaToPlay = getPodByUrl(url);
+                System.out.println("recieved pod");
+
+                System.out.println();
+                System.out.println("Genres:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+                }
 
 
                 if (mediaToPlay == null) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
                 }
-                // Creating played media
-                PlayedMedia savedMedia = playedMediaService.createPodFromUser(mediaToPlay);
 
+                System.out.println("Creating empty playedGenreList");
+                List<PlayedGenre> playedGenreList = new ArrayList<>();
+
+                // Check all genres in music media
+                System.out.println("Checking genre:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+
+                    // if the genre has not been played - create it
+                    if (!hasPlayedGenreBefore(user, genre)) {
+                        System.out.println("genre was not played before - creating");
+                        PlayedGenre playedGenre = playedGenreService.createFromPodGenres(genre);
+
+                        user.addGenreToPlayedGenre(playedGenre);
+                        userRepository.save(user);
+
+                        playedGenreList.add(playedGenre);
+
+                    } else {
+                        System.out.println("genre was found - adding +1");
+                        // add +1 in play
+                        PlayedGenre playedGenre = playedGenreService.findPlayedGenreByName(genre.getGenre());
+                        playedGenre.countPlay();
+                        PlayedGenre savedGenre = playedGenreService.save(playedGenre);
+
+                        playedGenreList.add(savedGenre);
+
+                    }
+                }
+
+                PlayedMedia savedMedia;
+                System.out.println("sending pod to playedMediaService.createPodFromUser()");
+                // Creating played media
+                if (playedGenreList.isEmpty()) {
+                    System.out.println("UserService: PlayedGenreList was empty!!!");
+                    savedMedia = playedMediaService.createPodFromUser(mediaToPlay);
+                } else {
+                    System.out.println("UserService: playedGenreList was not empty - sending list to create");
+                    savedMedia = playedMediaService.createPodFromUserWithList(mediaToPlay, playedGenreList);
+                }
+
+                System.out.println("media came back and created");
+
+                System.out.println("adding pod to users played media list");
                 // Saving played media to user
                 user.addMediaToPlayedMedia(savedMedia);
                 userRepository.save(user);
+
+                System.out.println("returning saved media");
 
                 return savedMedia;
 
 
             } else {
-                System.out.println("pod has been played");
+                System.out.println("video has been viewed");
                 // Else if person HAS listened to song - get it from persons list, add play+1 and return
                 PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
 
                 mediaBeenPlayed.countPlay();
+                for (PlayedGenre genre : mediaBeenPlayed.getGenres()) {
+                    genre.countPlay();
+                    playedGenreService.save(genre);
+                    System.out.println("counted play for genre");
+                }
                 System.out.println("pod has been counted play");
+
+                return playedMediaService.save(mediaBeenPlayed);
+            }
+        } else if (isVideo(url)) {
+            System.out.println("its video");
+
+            // If person has NOT watched the video before - create it
+            if (!hasPlayedMediaBefore(user, url)) {
+                System.out.println("video has not been played");
+
+                // Get Media
+                Video mediaToPlay = getVideoByUrl(url);
+                System.out.println("recieved video");
+
+                System.out.println();
+                System.out.println("Genres:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+                }
+
+
+                if (mediaToPlay == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
+                }
+
+                System.out.println("Creating empty playedGenreList");
+                List<PlayedGenre> playedGenreList = new ArrayList<>();
+
+                // Check all genres in music media
+                System.out.println("Checking genre:");
+                for (Genre genre : mediaToPlay.getGenres()) {
+                    System.out.println(genre.getGenre());
+
+                    // if the genre has not been played - create it
+                    if (!hasPlayedVideoGenreBefore(user, genre)) {
+                        System.out.println("genre was not played before - creating");
+                        PlayedGenre playedGenre = playedGenreService.createFromVideoGenres(genre);
+
+                        user.addGenreToPlayedGenre(playedGenre);
+                        userRepository.save(user);
+
+                        playedGenreList.add(playedGenre);
+
+                    } else {
+                        System.out.println("genre was found - adding +1");
+                        // add +1 in play
+                        PlayedGenre playedGenre = playedGenreService.findPlayedGenreByName(genre.getGenre());
+                        playedGenre.countPlay();
+                        PlayedGenre savedGenre = playedGenreService.save(playedGenre);
+
+                        playedGenreList.add(savedGenre);
+
+                    }
+                }
+
+                PlayedMedia savedMedia;
+                System.out.println("sending video to playedMediaService.createVideoFromUser()");
+                // Creating played media
+                if (playedGenreList.isEmpty()) {
+                    System.out.println("UserService: PlayedGenreList was empty!!!");
+                    savedMedia = playedMediaService.createVideoFromUser(mediaToPlay);
+                } else {
+                    System.out.println("UserService: playedGenreList was not empty - sending list to create");
+                    savedMedia = playedMediaService.createVideoFromUserWithList(mediaToPlay, playedGenreList);
+                }
+
+                System.out.println("media came back and created");
+
+                System.out.println("adding video to users played media list");
+                // Saving played media to user
+                user.addMediaToPlayedMedia(savedMedia);
+                userRepository.save(user);
+
+                System.out.println("returning saved media");
+
+                return savedMedia;
+
+
+            } else {
+                System.out.println("video has been viewed");
+                // Else if person HAS listened to song - get it from persons list, add play+1 and return
+                PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                mediaBeenPlayed.countPlay();
+                for (PlayedGenre genre : mediaBeenPlayed.getGenres()) {
+                    genre.countPlay();
+                    playedGenreService.save(genre);
+                    System.out.println("counted play for genre");
+                }
+                System.out.println("video has been counted play");
 
                 return playedMediaService.save(mediaBeenPlayed);
             }
@@ -191,10 +373,254 @@ public class UserService {
         return null;
     }
 
-    public Boolean isMusic(String url) {
-        ResponseEntity<Boolean> musicExistsInfo = restTemplate.getForEntity("lb://music-service/music/exists/" + url, Boolean.class);
+    public PlayedMedia likeMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
 
-        Boolean exists = musicExistsInfo.getBody();
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to like the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    if (playedMedia.isLiked() && user.getLikedMedia().contains(playedMedia)) {
+                        System.out.println("Media already liked - doing nothing");
+                        return playedMedia;
+                    } else {
+
+                        playedMedia.likeMedia();
+
+                        playedMediaService.save(playedMedia);
+
+                        System.out.println("media has been liked");
+
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
+
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
+    public PlayedGenre likeGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                System.out.println("Liking played genre: " + genreName);
+                playedGenre.likeGenre();
+
+                System.out.println("Saving played genre");
+                playedGenreService.save(playedGenre);
+
+                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
+                user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+
+                System.out.println("saving user");
+                userRepository.save(user);
+
+                System.out.println("returning played genre");
+                return playedGenre;
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
+    }
+
+    public PlayedMedia disLikeMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
+
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to dislike the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    if (playedMedia.isDisliked() && user.getDisLikedMedia().contains(playedMedia)) {
+                        System.out.println("Media already disliked - doing nothing");
+                        return playedMedia;
+                    } else {
+                        playedMedia.disLikeMedia();
+
+                        playedMediaService.save(playedMedia);
+
+                        System.out.println("media has been disliked");
+
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
+    public PlayedGenre disLikeGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                System.out.println("Disliking played genre: " + genreName);
+                playedGenre.disLikeGenre();
+
+                System.out.println("Saving played genre");
+                playedGenreService.save(playedGenre);
+
+                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
+                user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+
+                System.out.println("saving user");
+                userRepository.save(user);
+
+                System.out.println("returning played genre");
+                return playedGenre;
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
+    }
+
+    public PlayedMedia resetLikesAndDisLikesOfMedia(long id, String url) {
+        // Get User
+        User user = findUserById(id);
+        System.out.println("finding user");
+
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        if (!hasPlayedMediaBefore(user, url)) {
+            System.out.println("ERROR: In order to reset likes and dislike of the media, you first have to play it");
+            return null;
+
+        } else {
+
+            List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
+
+            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
+                System.out.println("ERROR: Users playedMedia was empty");
+                return null;
+            }
+
+            for (PlayedMedia playedMedia : usersPlayedMedia) {
+                if (playedMedia.getUrl().equals(url)) {
+                    if (!playedMedia.isLiked() && !playedMedia.isDisliked()) {
+                        System.out.println("Media is already false on both like and dislike - doing nothing");
+                        return playedMedia;
+                    } else {
+                        playedMedia.resetLikeAndDisLikeMedia();
+
+                        playedMediaService.save(playedMedia);
+
+                        System.out.println("media likes and dislikes has been reset");
+
+                        user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
+                        userRepository.save(user);
+
+                        return playedMedia;
+                    }
+                }
+            }
+            System.out.println("ERROR: kept going even though it shouldnt have");
+            return null;
+        }
+    }
+
+    public PlayedGenre resetLikesAndDisLikesOfGenre(long id, String genreName) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
+        }
+
+        for (PlayedGenre playedGenre : user.getPlayedGenre()) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
+                if (!playedGenre.isLiked() && !playedGenre.isDisliked()) {
+                    System.out.println("Genre is already false on both like and dislike - doing nothing");
+                    return playedGenre;
+                } else {
+                    playedGenre.resetLikeAndDisLikeGenre();
+
+                    playedGenreService.save(playedGenre);
+
+                    System.out.println("genre likes and dislikes has been reset");
+
+                    user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
+                    userRepository.save(user);
+
+                    return playedGenre;
+                }
+            }
+        }
+        System.out.println("ERROR: kept going even though it shouldnt have");
+        return null;
+    }
+
+    public Music testingMusic(String url) {
+        Music music = getMusicByUrl(url);
+
+        System.out.println("Testing to see all genres within music");
+        System.out.println("");
+        for (Genre genre : music.getGenres()) {
+            System.out.println("Genre " + genre.getGenre());
+        }
+
+        return music;
+    }
+
+    public boolean isMusic(String url) {
+
+        boolean exists = musicService.musicExistsByUrl(url);
 
         if (exists) {
             System.out.println("url is music");
@@ -205,24 +631,9 @@ public class UserService {
         }
     }
 
-    public Boolean isVideo(String url) {
-        ResponseEntity<Boolean> videoExistsInfo = restTemplate.getForEntity("lb://video-service/video/exists/" + url, Boolean.class);
+    public boolean isPod(String url) {
 
-        Boolean exists = videoExistsInfo.getBody();
-
-        if (exists) {
-            System.out.println("url is video");
-            return true;
-        } else {
-            System.out.println("url was not video");
-            return false;
-        }
-    }
-
-    public Boolean isPod(String url) {
-        ResponseEntity<Boolean> podExistsInfo = restTemplate.getForEntity("lb://pod-service/pod/exists/" + url, Boolean.class);
-
-        Boolean exists = podExistsInfo.getBody();
+        boolean exists = podService.podExistsByUrl(url);
 
         if (exists) {
             System.out.println("url is pod");
@@ -233,7 +644,18 @@ public class UserService {
         }
     }
 
+    public boolean isVideo(String url) {
 
+        boolean exists = videoService.videoExistsByUrl(url);
+
+        if (exists) {
+            System.out.println("url is video");
+            return true;
+        } else {
+            System.out.println("url was not video");
+            return false;
+        }
+    }
 
     public boolean hasPlayedMediaBefore(User user, String url) {
         List<PlayedMedia> playedMediaListForUser = getUsersPlayedMediaList(user);
@@ -243,6 +665,34 @@ public class UserService {
                 return true;
             }
         }
+
+        return false;
+    }
+
+    public boolean hasPlayedGenreBefore(User user, Genre genre) {
+        List<PlayedGenre> playedGenreListForUser = getUsersPlayedGenreList(user);
+
+
+        for (PlayedGenre playedGenre : playedGenreListForUser) {
+            if (playedGenre.getGenre().equals(genre.getGenre())) {
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+    public boolean hasPlayedVideoGenreBefore(User user, Genre genre) {
+        List<PlayedGenre> playedGenreListForUser = getUsersPlayedGenreList(user);
+
+
+        for (PlayedGenre playedGenre : playedGenreListForUser) {
+            if (playedGenre.getGenre().equals(genre.getGenre())) {
+                return true;
+            }
+        }
+
 
         return false;
     }
@@ -267,35 +717,67 @@ public class UserService {
         return null;
     }
 
-    public Media getMediaByUrl(String url) {
-        ResponseEntity<Media> fetchedMedia = restTemplate.getForEntity("lb://media-service/media/get/" + url, Media.class);
-
-        Media mediaToPlay = fetchedMedia.getBody();
-
-        return mediaToPlay;
-    }
-
     public Music getMusicByUrl(String url) {
-        ResponseEntity<Music> fetchedMusic = restTemplate.getForEntity("lb://music-service/music/get/" + url, Music.class);
+        Music musicToPlay = musicService.findMusicByUrl(url);
 
-        Music mediaToPlay = fetchedMusic.getBody();
+        if (musicToPlay == null) {
+            System.out.println("ERROR - Music is null");
+            return null;
+        }
 
-        return mediaToPlay;
-    }
-
-    public Video getVideoByUrl(String url) {
-        ResponseEntity<Video> fetchedVideo = restTemplate.getForEntity("lb://video-service/video/get/" + url, Video.class);
-
-        Video mediaToPlay = fetchedVideo.getBody();
-
-        return mediaToPlay;
+        return musicToPlay;
     }
 
     public Pod getPodByUrl(String url) {
-        ResponseEntity<Pod> fetchedMedia = restTemplate.getForEntity("lb://pod-service/pod/get/" + url, Pod.class);
+        Pod podToPlay = podService.findPodByUrl(url);
 
-        Pod mediaToPlay = fetchedMedia.getBody();
+        if (podToPlay == null) {
+            System.out.println("ERROR - Pod is null");
+            return null;
+        }
 
-        return mediaToPlay;
+        return podToPlay;
+    }
+
+    public Video getVideoByUrl(String url) {
+        Video videoToPlay = videoService.findVideoByUrl(url);
+
+        if (videoToPlay == null) {
+            System.out.println("ERROR - Video is null");
+            return null;
+        }
+
+        return videoToPlay;
+    }
+
+    public List<PlayedMedia> recommendations(long id) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            System.out.println("USER NULL");
+            return null;
+        }
+
+        // GENRES
+        List<PlayedGenre> usersGenres = user.getPlayedGenre();
+
+        List<PlayedGenre> sortedGenreList = usersGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+        System.out.println("");
+        System.out.println("GENRE: SORTED LIST");
+        for (PlayedGenre genre : sortedGenreList) {
+            System.out.println(genre.getGenre() + " played: " + genre.getTotalPlays() + " times.");
+        }
+
+        // MEDIA
+        List<PlayedMedia> usersMedia = user.getPlayedMedia();
+
+        List<PlayedMedia> sortedMediaList = usersMedia.stream().sorted(Comparator.comparingInt(PlayedMedia::getTimesPlayed).reversed()).collect(Collectors.toList());
+        System.out.println("");
+        System.out.println("MEDIA: SORTED LIST:");
+        for (PlayedMedia media : sortedMediaList) {
+            System.out.println(media.getTitle() + " played: " + media.getTimesPlayed() + " times.");
+        }
+
+        return sortedMediaList;
     }
 }

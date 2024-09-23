@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlayedGenreRepository extends JpaRepository<PlayedGenre, Long> {
+    PlayedGenre findPlayedGenreByGenreIgnoreCase(String genre);
 }

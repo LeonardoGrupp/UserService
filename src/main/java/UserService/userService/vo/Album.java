@@ -1,11 +1,12 @@
 package UserService.userService.vo;
 
-import jakarta.persistence.Embeddable;
-
-@Embeddable
+import jakarta.persistence.*;
+@Entity
 public class Album {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(name = "album_name")
     private String name;
 
     public Album() {

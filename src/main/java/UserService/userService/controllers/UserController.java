@@ -93,7 +93,7 @@ public class UserController {
     }
 
     @GetMapping("/recommendations/{id}")
-    public ResponseEntity<List<PlayedMedia>> recommendations(@PathVariable("id") long id) {
+    public ResponseEntity<List<Music>> recommendations(@PathVariable("id") long id) {
         return ResponseEntity.ok(userService.recommendations(id));
     }
 }

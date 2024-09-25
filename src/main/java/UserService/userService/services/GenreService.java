@@ -24,4 +24,11 @@ public class GenreService {
     public Genre findGenreByGenre(String genreName) {
         return genreRepository.findGenreByGenreIgnoreCase(genreName);
     }
+
+    public Genre addPlay(Genre genre) {
+        genre.addPlay();
+        genreRepository.save(genre);
+
+        return genre;
+    }
 }

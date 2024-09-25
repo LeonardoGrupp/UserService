@@ -848,17 +848,24 @@ public class UserService {
         return totalTop10Songs(user);
     }
 
-    public List<PlayedGenre> getUsersThreeMostPlayedGenresSortedByPlayes(User user) {
+    public List<PlayedGenre> getUsersMostPlayedGenresSortedByPlays(User user) {
         List<PlayedGenre> usersGenres = user.getPlayedGenre();
 
         List<PlayedGenre> sortedFullGenreList = usersGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
 
-        List<PlayedGenre> sortedTopThreeGenreList = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            sortedTopThreeGenreList.add(sortedFullGenreList.get(i));
+        List<PlayedGenre> sortedTopGenreList = new ArrayList<>();
+        if (sortedFullGenreList.size() >= 3) {
+            for (int i = 0; i < 3; i++) {
+                sortedTopGenreList.add(sortedFullGenreList.get(i));
+            }
+        } else if (sortedFullGenreList.size() < 3) {
+            for (int i = 0; i < sortedFullGenreList.size(); i++) {
+                sortedTopGenreList.add(sortedFullGenreList.get(i));
+            }
         }
 
-        return sortedTopThreeGenreList;
+
+        return sortedTopGenreList;
     }
 
     public List<PlayedGenre> sortAllPlayedGenresByPlays(User user) {
@@ -882,8 +889,8 @@ public class UserService {
     }
 
     public List<Genre> convertUserPlayedGenresToGenre(List<PlayedGenre> playedGenreList) {
-        List<Genre> topGenres = new ArrayList<>();
 
+        List<Genre> topGenres = new ArrayList<>();
         for (PlayedGenre playedGenre : playedGenreList) {
             topGenres.add(genreService.findGenreByGenre(playedGenre.getGenre()));
         }
@@ -892,7 +899,6 @@ public class UserService {
     }
 
     public List<Music> totalTop10Songs(User user) {
-        System.out.println("totalTop10Songs():");
         // Sort users PlayerGenres by most played
         List<PlayedGenre> sortedPlayedGenres = sortAllPlayedGenresByPlays(user);
         System.out.println("");
@@ -901,19 +907,89 @@ public class UserService {
             System.out.println(playedGenre.getGenre() + " " + playedGenre.getTotalPlays());
         }
 
-        List<PlayedGenre> usersTopPlayedGenres = new ArrayList<>();
+        System.out.println("topSongs - go into method");
+        List<Music> topSongs = getTop8SongsFromUsersTopGenres(user, sortedPlayedGenres.size());
 
-        if (sortedPlayedGenres.size() >= 3) {
-            // Extract top 3
-            usersTopPlayedGenres = getUsersThreeMostPlayedGenresSortedByPlayes(user);
+        int numberOfExtraSongs = 10 - topSongs.size();
 
-            // Convert PlayedGenres into Genres
-            List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres);
+        System.out.println("will add extra songs: " + numberOfExtraSongs);
+        System.out.println("");
+        System.out.println("the recommended 8 songs:");
+        for (Music music : topSongs) {
+            System.out.println(music.getPlayCounter() + " " + music.getTitle());
+        }
 
+        // TODO
+        // Get all genres
+        List<Genre> allGenres = getUnlistenedGenres(user);
+
+        System.out.println("");
+        System.out.println("allGenres should now be lower: " + allGenres.size());
+
+        // if there are genres user hasnt listened to
+        if (allGenres.size() > 0) {
+            // must add plays on regular genres to get most played genre not listened to.
+            // sort by genre size
+            List<Genre> sortedAllGenres = sortGenresByPlays(allGenres);
+
+            // Take most played genre:
+            Genre topGenre = sortedAllGenres.get(0);
+
+            // Get list of Music from topGenre:
+            List<Music> music = musicService.findAllMusicInGenre(topGenre);
+
+            // Sort music by plays
+            List<Music> sortedMusic = sortAllMusicByPlays(music);
+
+            // extract 2 songs from sorted music
+            List<Music> musicToSendBack = new ArrayList<>();
+
+            for (int i = 0; i < numberOfExtraSongs; i++) {
+                musicToSendBack.add(sortedMusic.get(i));
+            }
+            System.out.println("topSongs size: " + topSongs.size());
+
+            topSongs.addAll(musicToSendBack);
+        }
+
+        List<Music> sortedTopSongs = sortAllMusicByPlays(topSongs);
+
+        System.out.println("");
+        System.out.println("SORTED TOP SONGS SHOULD BE 10");
+        for (Music music : sortedTopSongs) {
+            System.out.println(music.getPlayCounter() + " " + music.getTitle());
+        }
+
+        return sortedTopSongs;
+    }
+
+    public List<Music> getTop8SongsFromUsersTopGenres(User user, int size) {
+        System.out.println("inside method - getting users top played genres");
+        // Extract top 3 Genres
+        List<PlayedGenre> usersTopPlayedGenres = getUsersMostPlayedGenresSortedByPlays(user);
+        System.out.println("");
+        System.out.println("Extrect top 3 genres");
+
+        System.out.println("going to converts PlayedGenres to Genre");
+        // Convert PlayedGenres into Genres
+        List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres);
+        System.out.println("convering top genres");
+
+        List<Music> topSongs = new ArrayList<>();
+
+        if (size >= 3) {
             // Get all songs of genre
             List<Music> allSongsFirstGenre = musicService.findAllMusicInGenre(topGenres.get(0));
             List<Music> allSongsSecondGenre = musicService.findAllMusicInGenre(topGenres.get(1));
             List<Music> allSongsThirdGenre = musicService.findAllMusicInGenre(topGenres.get(2));
+
+            System.out.println("");
+            System.out.println("INFO");
+            for (Music music : allSongsFirstGenre) {
+                System.out.println(music.getPlayCounter() + " " + music.getTitle());
+            }
+            System.out.println("");
+            System.out.println("");
 
             // Add all songs into 1 list
             List<Music> allSongsTogether = new ArrayList<>();
@@ -921,6 +997,66 @@ public class UserService {
             allSongsTogether.addAll(allSongsSecondGenre);
             allSongsTogether.addAll(allSongsThirdGenre);
 
+            System.out.println("");
+            System.out.println("allSongsTogether");
+            for (Music music : allSongsTogether) {
+                System.out.println(music.getPlayCounter() + " " + music.getTitle());
+            }
+
+            List<Music> musicToDelete = new ArrayList<>();
+
+            // Add songs to list that already been listened to
+            for (PlayedMedia playedMedia : user.getPlayedMedia()) {
+                for (Music music : allSongsTogether) {
+                    if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
+                        System.out.println("deleting: " + music.getTitle());
+                        musicToDelete.add(music);
+                    }
+                }
+            }
+
+            System.out.println("");
+            System.out.println("the songs user listened to:");
+            for (PlayedMedia playedMedia : user.getPlayedMedia()) {
+                System.out.println(playedMedia.getTitle());
+            }
+            System.out.println("---");
+            System.out.println("songs to be deleted:");
+            for (Music music : musicToDelete) {
+                System.out.println(music.getTitle());
+            }
+
+            // Remove the music thats already been listened to
+            for (Music music : musicToDelete) {
+                allSongsTogether.remove(music);
+            }
+
+            // Sort list with music user has not yet listened to
+            List<Music> sortedAllSongs = sortAllMusicByPlays(allSongsTogether);
+
+            // Extract top 8 songs and put into list.
+            // if all songs are more than 8 extract 8.
+            System.out.println("size: " + sortedAllSongs.size());
+            if (sortedAllSongs.size() > 8) {
+                for (int i = 0; i < 8; i++) {
+                    topSongs.add(sortedAllSongs.get(i));
+                }
+            }
+            // If all songs are less than 8, extract how many there are
+            else if (sortedAllSongs.size() < 8) {
+                for (int i = 0; i < sortedAllSongs.size(); i++) {
+                    topSongs.add(sortedAllSongs.get(i));
+                }
+            }
+        } else if (size == 2) {
+            // Get all songs of genre
+            List<Music> allSongsFirstGenre = musicService.findAllMusicInGenre(topGenres.get(0));
+            List<Music> allSongsSecondGenre = musicService.findAllMusicInGenre(topGenres.get(1));
+
+            // Add all songs into 1 list
+            List<Music> allSongsTogether = new ArrayList<>();
+            allSongsTogether.addAll(allSongsFirstGenre);
+            allSongsTogether.addAll(allSongsSecondGenre);
 
             List<Music> musicToDelete = new ArrayList<>();
 
@@ -941,81 +1077,68 @@ public class UserService {
             // Sort list with music user has not yet listened to
             List<Music> sortedAllSongs = sortAllMusicByPlays(allSongsTogether);
 
-            // Get top 8 songs
-            List<Music> topSongs = new ArrayList<>();
-
-            // Extract top 8 played songs and put into list
-            // if all songs are more than 8, extract 8
+            // Extract top 8 songs and put into list.
+            // if all songs are more than 8 extract 8.
             if (sortedAllSongs.size() > 8) {
                 for (int i = 0; i < 8; i++) {
                     topSongs.add(sortedAllSongs.get(i));
                 }
             }
-            // If all songs are less than 8, extract how many there are.
+            // If all songs are less than 8, extract how many there are
+            else if (sortedAllSongs.size() < 8) {
+                for (int i = 0; i < sortedAllSongs.size(); i++) {
+                    topSongs.add(sortedAllSongs.get(i));
+                }
+            }
+        } else if (size == 1) {
+            // Get all songs of genre
+            List<Music> allSongsFirstGenre = musicService.findAllMusicInGenre(topGenres.get(0));
+
+            // Add all songs into 1 list
+            List<Music> allSongsTogether = new ArrayList<>();
+            allSongsTogether.addAll(allSongsFirstGenre);
+
+            List<Music> musicToDelete = new ArrayList<>();
+
+            // Add songs to list that already been listened to
+            for (PlayedMedia playedMedia : user.getPlayedMedia()) {
+                for (Music music : allSongsTogether) {
+                    if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
+                        musicToDelete.add(music);
+                    }
+                }
+            }
+
+            // Remove the music thats already been listened to
+            for (Music music : musicToDelete) {
+                allSongsTogether.remove(music);
+            }
+
+            // Sort list with music user has not yet listened to
+            List<Music> sortedAllSongs = sortAllMusicByPlays(allSongsTogether);
+
+            // Extract top 8 songs and put into list.
+            // if all songs are more than 8 extract 8.
+            if (sortedAllSongs.size() > 8) {
+                for (int i = 0; i < 8; i++) {
+                    topSongs.add(sortedAllSongs.get(i));
+                }
+            }
+            // If all songs are less than 8, extract how many there are
             else if (sortedAllSongs.size() < 8) {
                 for (int i = 0; i < sortedAllSongs.size(); i++) {
                     topSongs.add(sortedAllSongs.get(i));
                 }
             }
 
-            System.out.println("");
-            System.out.println("sorted top8 songs:");
-            for (Music music : topSongs) {
-                System.out.println(music.getPlayCounter() + " " + music.getTitle());
-            }
-
-            int numberOfExtraSongs = 10 - topSongs.size();
-
-
-
-            // Get 2 songs from genres person has not listened too. If 2 songs dont exist, add songs person has listened to.
-
-            // TODO
-            // Get all genres
-            List<Genre> allGenres = getUnlistenedGenres(user);
-
-            System.out.println("");
-            System.out.println("allGenres should now be lower: " + allGenres.size());
-
-            // if there are genres user hasnt listened to
-            if (allGenres.size() > 0) {
-                // must add plays on regular genres to get most played genre not listened to.
-                // sort by genre size
-                List<Genre> sortedAllGenres = sortGenresByPlays(allGenres);
-
-                // Take most played genre:
-                Genre topGenre = sortedAllGenres.get(0);
-
-                // Get list of Music from topGenre:
-                List<Music> music = musicService.findAllMusicInGenre(topGenre);
-
-                // Sort music by plays
-                List<Music> sortedMusic = sortAllMusicByPlays(music);
-
-                // extract 2 songs from sorted music
-                List<Music> musicToSendBack = new ArrayList<>();
-
-                for (int i = 0; i < numberOfExtraSongs; i++) {
-                    musicToSendBack.add(sortedMusic.get(i));
-                }
-                System.out.println("topSongs size: "+ topSongs.size());
-
-                topSongs.addAll(musicToSendBack);
-            }
-
-            List<Music> sortedTopSongs = sortAllMusicByPlays(topSongs);
-
-            System.out.println("");
-            System.out.println("SORTED TOP SONGS SHOULD BE 10");
-            for (Music music : sortedTopSongs) {
-                System.out.println(music.getPlayCounter() + " " + music.getTitle());
-            }
-
-            return sortedTopSongs;
+        }
+        if (size == 0) {
+            return topSongs;
 
         }
-        return null;
 
+
+        return topSongs;
     }
 
     public List<Genre> getUnlistenedGenres(User user) {
@@ -1039,236 +1162,6 @@ public class UserService {
         List<Genre> sortedAllGenres = sortGenresByPlays(allGenres);
 
         return sortedAllGenres;
-    }
-
-    public List<Music> top10SongsFromGenre(User user, PlayedGenre playedGenre) {
-        System.out.println("");
-        System.out.println("Songs from first genre - all genresongs:");
-        Genre genre = genreService.findGenreByGenre(playedGenre.getGenre());
-
-        if (genre == null) {
-            System.out.println("songsFrom_FIRST_Genre()");
-            System.out.println("ERROR: Genre was null - not found");
-            return null;
-        }
-
-        // Adding all music from that genre into list
-        List<Music> getAllSongsFromGenre = musicService.findAllMusicInGenre(genre);
-
-        // New list
-        List<Music> musicToDelete = new ArrayList<>();
-
-        // Sorting list
-        List<Music> sortedMusicList = sortAllMusicByPlays(getAllSongsFromGenre);
-
-        // Check if already exists - If music URL exists in playedMedia, add music from sorted list to musicToDelete
-        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
-            for (Music music : sortedMusicList) {
-                if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
-                    musicToDelete.add(music);
-                }
-            }
-        }
-
-        // delete songs with URL from the sorted musiclist
-        for (Music musicDuplicate : musicToDelete) {
-            sortedMusicList.remove(musicDuplicate);
-        }
-
-        // Create top4 list
-        List<Music> top10 = new ArrayList<>();
-
-        // Add top 4 songs to list
-        for (int i = 0; i < 10; i++) {
-            top10.add(sortedMusicList.get(i));
-        }
-
-        List<Music> sortedTop10 = sortAllMusicByPlays(top10);
-
-        System.out.println("");
-        System.out.println("TOP 10 PLAYED SONGS YOU HAVE NOT LISTENED TO FROM GENRE: " + playedGenre.getGenre());
-        for (Music music : sortedTop10) {
-            System.out.println(music.getTitle() + " played: " + music.getPlayCounter());
-        }
-
-
-        System.out.println("");
-        System.out.println("returning top10 FIRST GENRE songs");
-
-        return sortedTop10;
-    }
-
-    public List<Music> songsFromFirstGenre(User user, PlayedGenre playedGenre) {
-        System.out.println("");
-        System.out.println("Songs from first genre - all genresongs:");
-        Genre genre = genreService.findGenreByGenre(playedGenre.getGenre());
-
-        if (genre == null) {
-            System.out.println("songsFrom_FIRST_Genre()");
-            System.out.println("ERROR: Genre was null - not found");
-            return null;
-        }
-
-        // Adding all music from that genre into list
-        List<Music> getAllSongsFromGenre = musicService.findAllMusicInGenre(genre);
-
-        // New list
-        List<Music> musicToDelete = new ArrayList<>();
-
-        // Sorting list
-        List<Music> sortedMusicList = sortAllMusicByPlays(getAllSongsFromGenre);
-
-        System.out.println("");
-        System.out.println("first genre: FOR TEST PURPOSE - POST top 5 SONGS");
-        for (int i = 0; i < 5; i++) {
-            System.out.println(sortedMusicList.get(i).getTitle() + " plays: " + sortedMusicList.get(i).getPlayCounter());
-        }
-
-        // Check if already exists - If music URL exists in playedMedia, add music from sorted list to musicToDelete
-        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
-            for (Music music : sortedMusicList) {
-                if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
-                    musicToDelete.add(music);
-                }
-            }
-        }
-
-        // delete songs with URL from the sorted musiclist
-        for (Music musicDuplicate : musicToDelete) {
-            sortedMusicList.remove(musicDuplicate);
-        }
-
-        // Create top4 list
-        List<Music> top4 = new ArrayList<>();
-
-        // Add top 4 songs to list
-        for (int i = 0; i < 4; i++) {
-            top4.add(sortedMusicList.get(i));
-        }
-
-        List<Music> sortedTop4 = sortAllMusicByPlays(top4);
-
-        System.out.println("");
-        System.out.println("TOP 4 PLAYED SONGS YOU HAVE NOT LISTENED TO FROM GENRE: " + playedGenre.getGenre());
-        for (Music music : sortedTop4) {
-            System.out.println(music.getTitle() + " played: " + music.getPlayCounter());
-        }
-
-
-        System.out.println("");
-        System.out.println("returning all songs from genre");
-
-        return sortedTop4;
-    }
-
-    public List<Music> songsFromSecondGenre(User user, PlayedGenre playedGenre) {
-        System.out.println("");
-        System.out.println("Songs from second genre - all genresongs:");
-        Genre genre = genreService.findGenreByGenre(playedGenre.getGenre());
-
-        if (genre == null) {
-            System.out.println("songsFrom_SECOND_Genre()");
-            System.out.println("ERROR: Genre was null - not found");
-            return null;
-        }
-
-        List<Music> getAllSongsFromGenre = musicService.findAllMusicInGenre(genre);
-
-        List<Music> musicToDelete = new ArrayList<>();
-
-        List<Music> sortedMusicList = sortAllMusicByPlays(getAllSongsFromGenre);
-
-        System.out.println("");
-        System.out.println("second genre: FOR TEST PURPOSE - POST top 5 SONGS");
-        for (int i = 0; i < 5; i++) {
-            System.out.println(sortedMusicList.get(i).getTitle() + " plays: " + sortedMusicList.get(i).getPlayCounter());
-        }
-
-        // Check if already exists
-        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
-            for (Music music : sortedMusicList) {
-                if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
-                    musicToDelete.add(music);
-                }
-            }
-        }
-
-        for (Music musicDuplicate : musicToDelete) {
-            sortedMusicList.remove(musicDuplicate);
-        }
-
-        List<Music> top2 = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            top2.add(sortedMusicList.get(i));
-        }
-
-        List<Music> sortedTop2 = sortAllMusicByPlays(top2);
-
-        System.out.println("");
-        System.out.println("TOP 2 PLAYED SONGS YOU HAVE NOT LISTENED TO FROM GENRE: " + playedGenre.getGenre());
-        for (Music music : sortedTop2) {
-            System.out.println(music.getTitle() + " played: " + music.getPlayCounter());
-        }
-
-        System.out.println("");
-        System.out.println("Returning top 2 songs from genre");
-
-        return sortedTop2;
-    }
-
-    public List<Music> songsFromThirdGenre(User user, PlayedGenre playedGenre) {
-        System.out.println("");
-        System.out.println("Songs from third genre - all genresongs:");
-        Genre genre = genreService.findGenreByGenre(playedGenre.getGenre());
-
-        if (genre == null) {
-            System.out.println("songsFrom_THIRD_Genre()");
-            System.out.println("ERROR: Genre was null - not found");
-            return null;
-        }
-
-        List<Music> getAllSongsFromGenre = musicService.findAllMusicInGenre(genre);
-
-        List<Music> musicToDelete = new ArrayList<>();
-
-        List<Music> sortedMusicList = sortAllMusicByPlays(getAllSongsFromGenre);
-
-        System.out.println("");
-        System.out.println("third genre: FOR TEST PURPOSE - POST top 5 SONGS");
-        for (int i = 0; i < 5; i++) {
-            System.out.println(sortedMusicList.get(i).getTitle() + " plays: " + sortedMusicList.get(i).getPlayCounter());
-        }
-
-        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
-            for (Music music : sortedMusicList) {
-                if (playedMedia.getUrl().equalsIgnoreCase(music.getUrl())) {
-                    musicToDelete.add(music);
-                }
-            }
-        }
-
-        for (Music musicDuplicate : musicToDelete) {
-            sortedMusicList.remove(musicDuplicate);
-        }
-
-        List<Music> top2 = new ArrayList<>();
-
-        for (int i = 0; i < 2; i++) {
-            top2.add(sortedMusicList.get(i));
-        }
-
-        List<Music> sortedTop2 = sortAllMusicByPlays(top2);
-
-        System.out.println("");
-        System.out.println("TOP 2 PLAYED SONGS YOU HAVE NOT LISTENED TO FROM GENRE " + playedGenre.getGenre());
-        for (Music music : sortedTop2) {
-            System.out.println(music.getTitle() + " played: " + music.getPlayCounter());
-        }
-
-        System.out.println("");
-        System.out.println("Returning third genre music");
-
-        return sortedTop2;
     }
 
 

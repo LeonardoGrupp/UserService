@@ -785,7 +785,7 @@ public class UserService {
         return videoToPlay;
     }
 
-    public List<Music> recommendations(long id) {
+    public List<Music> musicRecommendations(long id) {
         User user = findUserById(id);
 
         if (user == null) {

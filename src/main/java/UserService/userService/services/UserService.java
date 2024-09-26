@@ -792,58 +792,6 @@ public class UserService {
             System.out.println("USER NULL");
             return null;
         }
-//        System.out.println("");
-//        System.out.println("totalTop10Songs()");
-//        totalTop10Songs(user);
-
-//        System.out.println("");
-//        System.out.println("");
-//        System.out.println("END OF IT DONT CARE");
-//        System.out.println("END OF IT DONT CARE");
-//
-//        System.out.println("TOP 3 PLAYED GENRES:");
-//        List<PlayedGenre> playedTopThree = getUsersThreeMostPlayedGenresSortedByPlayes(user);
-//        for (PlayedGenre genre : playedTopThree) {
-//            System.out.println(genre.getGenre() + " played: " + genre.getTotalPlays());
-//        }
-//
-//        System.out.println("");
-//        System.out.println("Getting 4 songs from " + playedTopThree.get(0).getGenre());
-//        List<Music> fourSongsFromFirstGenre = songsFromFirstGenre(user, playedTopThree.get(0));
-//
-//        List<Music> twoSongsFromSecondGenre = songsFromSecondGenre(user, playedTopThree.get(1));
-//
-//        List<Music> twoSongsFromThirdGenre = songsFromThirdGenre(user, playedTopThree.get(2));
-//
-//        // add 2 most listened songs from genres user hasnt listened to
-//
-//        // Empty recommendationslist
-//        List<Music> recommendationsList = new ArrayList<>();
-//
-//        // Adding top 4 from genre1
-//        for (Music music : fourSongsFromFirstGenre) {
-//            recommendationsList.add(music);
-//        }
-//
-//        // Adding top 2 from genre2
-//        for (Music music : twoSongsFromSecondGenre) {
-//            recommendationsList.add(music);
-//        }
-//
-//        // Adding top 3 from genre3
-//        for (Music music : twoSongsFromThirdGenre) {
-//            recommendationsList.add(music);
-//        }
-//
-//        // Sort recommendationslist of most listened to:
-//        List<Music> sortedRecommendedList = sortAllMusicByPlays(recommendationsList);
-//
-//        System.out.println("SHOULD BE 8 SONGS");
-//        for (Music music : sortedRecommendedList) {
-//            System.out.println(music.getPlayCounter() + " " + music.getTitle());
-//        }
-
-//        return sortedRecommendedList;
 
         return totalTop10Songs(user);
     }
@@ -950,7 +898,15 @@ public class UserService {
             System.out.println("topSongs size: " + topSongs.size());
 
             topSongs.addAll(musicToSendBack);
+        } else {
+            // TODO HÄR SKA DEN TA FRÅN GENRER SOM REDAN FINNS - MEST SPELADE LÅTAR SOM PERSONEN INTE LYSSNAT PÅ TIDIGARE
+
+            // TODO 2 IF-SATSER - IF PERSON HAS LISTENED TO ALL MUSIC - RECOMMEND TOP PLAYED BY ALL
+
+            // TODO IF PERSON HAS NOT LISTENED TO ALL MUSIC - RECOMMEND MUSIC HE HAS NOT LISTENED TOO
         }
+
+        //TODO Se så att den fortfarande hittar låtar, även om du lyssnat på alla genres
 
         List<Music> sortedTopSongs = sortAllMusicByPlays(topSongs);
 

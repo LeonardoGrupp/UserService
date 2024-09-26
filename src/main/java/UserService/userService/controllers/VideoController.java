@@ -1,5 +1,6 @@
 package UserService.userService.controllers;
 
+import UserService.userService.services.UserService;
 import UserService.userService.services.VideoService;
 import UserService.userService.vo.Video;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,12 @@ import java.util.List;
 public class VideoController {
 
     private VideoService videoService;
+    private UserService userService;
 
     @Autowired
-    public VideoController(VideoService videoService) {
+    public VideoController(VideoService videoService, UserService userService) {
         this.videoService = videoService;
+        this.userService = userService;
     }
 
     @GetMapping("/all")
@@ -27,10 +30,10 @@ public class VideoController {
         return ResponseEntity.ok(videoService.findAllVideos());
     }
 
-//    @GetMapping("/recommendations/{id}")
-//    public ResponseEntity<List<Video>> videoRecommendations(@PathVariable("id") long id) {
-//        return ResponseEntity.ok(userService.videoRecommendations(id));
-//    }
+    @GetMapping("/recommendations/{id}")
+    public ResponseEntity<List<Video>> videoRecommendations(@PathVariable("id") long id) {
+        return ResponseEntity.ok(userService.videoRecommendations(id));
+    }
 
 }
 

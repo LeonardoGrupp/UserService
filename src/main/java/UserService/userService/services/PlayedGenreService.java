@@ -40,28 +40,15 @@ public class PlayedGenreService {
     }
 
     public PlayedGenre createFromMusicGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "music"));
     }
 
     public PlayedGenre createFromPodGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "pod"));
     }
 
     public PlayedGenre createFromVideoGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
-    }
-
-    public List<PlayedGenre> createFromMusic(Music music) {
-        List<PlayedGenre> playedGenreList = new ArrayList<>();
-
-        for (Genre genre : music.getGenres()) {
-            PlayedGenre playedGenre = new PlayedGenre(genre.getGenre());
-
-            playedGenreRepository.save(playedGenre);
-            playedGenreList.add(playedGenre);
-        }
-
-        return playedGenreList;
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "video"));
     }
 
     public PlayedGenre save(PlayedGenre playedGenre) {

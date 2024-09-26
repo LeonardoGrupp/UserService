@@ -1,6 +1,8 @@
 package UserService.userService.services;
 
 import UserService.userService.repositories.PodRepository;
+import UserService.userService.vo.Genre;
+import UserService.userService.vo.Music;
 import UserService.userService.vo.Pod;
 import UserService.userService.vo.Video;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,5 +33,16 @@ public class PodService {
         Optional<Pod> optionalPod = podRepository.findByUrlIgnoreCase(url);
 
         return optionalPod.orElse(null);
+    }
+
+    public List<Pod> findAllPodsInGenre(Genre genre) {
+        return podRepository.findPodsByGenres(genre);
+    }
+
+    public Pod addPlay(Pod pod) {
+        pod.countPlay();
+        podRepository.save(pod);
+
+        return pod;
     }
 }

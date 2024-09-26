@@ -1,6 +1,7 @@
 package UserService.userService.services;
 
 import UserService.userService.repositories.MusicRepository;
+import UserService.userService.vo.Genre;
 import UserService.userService.vo.Music;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,16 @@ public class MusicService {
         Optional<Music> optionalMusic = musicRepository.findByUrlIgnoreCase(url);
 
         return optionalMusic.orElse(null);
+    }
+
+    public List<Music> findAllMusicInGenre(Genre genre) {
+        return musicRepository.findMusicByGenres(genre);
+    }
+
+    public Music addPlay(Music music) {
+        music.countPlay();
+        musicRepository.save(music);
+
+        return music;
     }
 }

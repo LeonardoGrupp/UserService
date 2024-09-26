@@ -1,7 +1,11 @@
 INSERT INTO users (id, username)
 VALUES
-    (1, 'gubbe'),
-    (2, 'annan gubbe');
+    (1, 'First Guy'),
+    (2, 'Second Guy'),
+    (3, 'Third Guy'),
+    (4, 'Fourth Guy'),
+    (5, 'Fifth Guy')
+;
 
 -- INSERT INTO played_genres (id, genre, total_plays)
 -- VALUES

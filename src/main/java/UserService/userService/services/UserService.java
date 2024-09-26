@@ -874,37 +874,64 @@ public class UserService {
         System.out.println("");
         System.out.println("allGenres should now be lower: " + allGenres.size());
 
-        // if there are genres user hasnt listened to
-        if (allGenres.size() > 0) {
-            // must add plays on regular genres to get most played genre not listened to.
-            // sort by genre size
-            List<Genre> sortedAllGenres = sortGenresByPlays(allGenres);
+        System.out.println("inne här");
+        // must add plays on regular genres to get most played genre not listened to.
+        // sort by genre size
+        List<Genre> sortedAllGenres = sortGenresByPlays(allGenres);
 
-            // Take most played genre:
-            Genre topGenre = sortedAllGenres.get(0);
+        // Take most played genre:
+        Genre topGenre = sortedAllGenres.get(0);
 
-            // Get list of Music from topGenre:
-            List<Music> music = musicService.findAllMusicInGenre(topGenre);
+        // Get list of Music from topGenre:
+        List<Music> music = musicService.findAllMusicInGenre(topGenre);
 
-            // Sort music by plays
-            List<Music> sortedMusic = sortAllMusicByPlays(music);
+        // TODO IF MUSIC IS EMPTY - get from top played genres - this means there are no unlistened genres anymore.
+        if (music.isEmpty()) {
+            List<Genre> everyGenre = genreService.getAllGenres();
+            List<Genre> sortedEveryGenre = sortGenresByPlays(everyGenre);
+            Genre topListenedGenre = sortedEveryGenre.get(0);
 
-            // extract 2 songs from sorted music
-            List<Music> musicToSendBack = new ArrayList<>();
+            music = musicService.findAllMusicInGenre(topListenedGenre);
 
-            for (int i = 0; i < numberOfExtraSongs; i++) {
-                musicToSendBack.add(sortedMusic.get(i));
-            }
-            System.out.println("topSongs size: " + topSongs.size());
-
-            topSongs.addAll(musicToSendBack);
-        } else {
-            // TODO HÄR SKA DEN TA FRÅN GENRER SOM REDAN FINNS - MEST SPELADE LÅTAR SOM PERSONEN INTE LYSSNAT PÅ TIDIGARE
-
-            // TODO 2 IF-SATSER - IF PERSON HAS LISTENED TO ALL MUSIC - RECOMMEND TOP PLAYED BY ALL
-
-            // TODO IF PERSON HAS NOT LISTENED TO ALL MUSIC - RECOMMEND MUSIC HE HAS NOT LISTENED TOO
         }
+
+        System.out.println("size of music: " + music.size());
+
+        System.out.println("");
+        System.out.println("testing if music is 0");
+        for (Music music1 : music) {
+            System.out.println(music1.getTitle());
+        }
+        System.out.println("");
+        System.out.println("");
+
+        // Sort music by plays
+        List<Music> sortedMusic = sortAllMusicByPlays(music);
+
+        // extract 2 songs from sorted music
+        List<Music> musicToSendBack = new ArrayList<>();
+
+        System.out.println("");
+        System.out.println("all Unlistened genres:");
+        for (Genre genre : allGenres) {
+            System.out.println(genre.getGenre());
+        }
+
+        System.out.println("");
+        System.out.println("Sorted Music:");
+        for (Music song : sortedMusic) {
+            System.out.println(song.getTitle());
+        }
+
+        System.out.println("");
+        System.out.println("hej");
+        for (int i = 0; i < numberOfExtraSongs; i++) {
+            System.out.println("i: " + i + " / " + numberOfExtraSongs);
+            musicToSendBack.add(sortedMusic.get(i));
+        }
+        System.out.println("topSongs size: " + topSongs.size());
+
+        topSongs.addAll(musicToSendBack);
 
         //TODO Se så att den fortfarande hittar låtar, även om du lyssnat på alla genres
 
@@ -912,8 +939,8 @@ public class UserService {
 
         System.out.println("");
         System.out.println("SORTED TOP SONGS SHOULD BE 10");
-        for (Music music : sortedTopSongs) {
-            System.out.println(music.getPlayCounter() + " " + music.getTitle());
+        for (Music musicSongs : sortedTopSongs) {
+            System.out.println(musicSongs.getPlayCounter() + " " + musicSongs.getTitle());
         }
 
         return sortedTopSongs;
@@ -987,6 +1014,13 @@ public class UserService {
                 allSongsTogether.remove(music);
             }
 
+            // If allSongsTogether = empty it means no unplayed songs exist. If so, add all top 3 genre songs into allSongsTogether
+            if (allSongsTogether.isEmpty()) {
+                allSongsTogether.addAll(allSongsFirstGenre);
+                allSongsTogether.addAll(allSongsSecondGenre);
+                allSongsTogether.addAll(allSongsThirdGenre);
+            }
+
             // Sort list with music user has not yet listened to
             List<Music> sortedAllSongs = sortAllMusicByPlays(allSongsTogether);
 
@@ -1030,6 +1064,12 @@ public class UserService {
                 allSongsTogether.remove(music);
             }
 
+            // If allSongsTogether = empty it means no unplayed songs exist. If so, add all top 2 genre songs into allSongsTogether
+            if (allSongsTogether.isEmpty()) {
+                allSongsTogether.addAll(allSongsFirstGenre);
+                allSongsTogether.addAll(allSongsSecondGenre);
+            }
+
             // Sort list with music user has not yet listened to
             List<Music> sortedAllSongs = sortAllMusicByPlays(allSongsTogether);
 
@@ -1068,6 +1108,11 @@ public class UserService {
             // Remove the music thats already been listened to
             for (Music music : musicToDelete) {
                 allSongsTogether.remove(music);
+            }
+
+            // If allSongsTogether = empty it means no unplayed songs exist. If so, add all top 1 genre songs into allSongsTogether
+            if (allSongsTogether.isEmpty()) {
+                allSongsTogether.addAll(allSongsFirstGenre);
             }
 
             // Sort list with music user has not yet listened to

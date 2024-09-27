@@ -5,6 +5,8 @@ import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
 import UserService.userService.repositories.UserRepository;
 import UserService.userService.vo.*;
+import org.hibernate.tool.schema.internal.exec.ScriptTargetOutputToFile;
+import org.hibernate.tool.schema.spi.ScriptTargetOutput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -1053,23 +1055,39 @@ public class UserService {
     }
 
     public List<Video> totalTop10Videos(User user) {
+        // hämtar alla videos
         List<Video> allVideos = videoService.findAllVideos();
 
         List<Video> videosToDelete = new ArrayList<>();
 
+        System.out.println("");
+        // lägg till alla videos user kollat på
         for (PlayedMedia playedMedia : user.getPlayedMedia()) {
             for (Video video : allVideos) {
-                if (playedMedia.getType().equalsIgnoreCase("video")) {
+                if (playedMedia.getUrl().equalsIgnoreCase(video.getUrl())) {
+                    System.out.println("duplicate: " + video.getTitle());
                     videosToDelete.add(video);
                 }
             }
         }
 
+        System.out.println("");
+        System.out.println("Videos thats been viewed and will be removed");
+        for (Video video : videosToDelete) {
+            System.out.println(video.getTitle());
+        }
+
+        // deletar alla dubletter
         if (!videosToDelete.isEmpty()) {
             for (Video video : videosToDelete) {
                 allVideos.remove(video);
             }
         }
+
+        System.out.println("");
+        System.out.println("those videos are now removed");
+        System.out.println("size of allVideos: " + allVideos.size());
+
 
         List<Video> top10videos = new ArrayList<>();
 
@@ -1085,9 +1103,15 @@ public class UserService {
 
         }
         // If allVideos is not empty and allVideos size it less than 10
-        else if (!allVideos.isEmpty() && allVideos.size() < 10) {
+        else if (allVideos.size() > 0 && allVideos.size() < 10) {
+            System.out.println("person has seen all videos but a few");
+            System.out.println("allVideos is not empty && size < 10");
             // extract missing amount of videos
             int numberOfVideosToAdd = 10 - allVideos.size();
+
+            System.out.println("");
+            System.out.println("the allVideos size was: " + allVideos.size());
+            System.out.println("we need to add: " + numberOfVideosToAdd);
 
             // get all videos
             List<Video> allVideos2 = videoService.findAllVideos();
@@ -1112,7 +1136,9 @@ public class UserService {
                 top10videos.add(sortAllVideos.get(i));
             }
         }
+        // person has seen all videos
         else if (allVideos.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
+            System.out.println("person has seen all videos");
             // Get all videos
             allVideos = videoService.findAllVideos();
 
@@ -1130,23 +1156,39 @@ public class UserService {
     }
 
     public List<Pod> totalTop10Pods(User user) {
+        // hämtar alla pods
         List<Pod> allPods = podService.findAllPods();
 
         List<Pod> podsToDelete = new ArrayList<>();
 
+        System.out.println("");
+        // lägg till alla pods user kollat på
         for (PlayedMedia playedMedia : user.getPlayedMedia()) {
             for (Pod pod : allPods) {
-                if (playedMedia.getType().equalsIgnoreCase("pod")) {
+                if (playedMedia.getUrl().equalsIgnoreCase(pod.getUrl())) {
+                    System.out.println("duplicate: " + pod.getTitle());
                     podsToDelete.add(pod);
                 }
             }
         }
 
+        System.out.println("");
+        System.out.println("Pods thats been viewed/listened to and will be removed");
+        for (Pod pod : podsToDelete) {
+            System.out.println(pod.getTitle());
+        }
+
+        // deletar alla dubletter
         if (!podsToDelete.isEmpty()) {
             for (Pod pod : podsToDelete) {
                 allPods.remove(pod);
             }
         }
+
+        System.out.println("");
+        System.out.println("those pods are now removed");
+        System.out.println("size of allPods: " + allPods.size());
+
 
         List<Pod> top10pods = new ArrayList<>();
 
@@ -1162,9 +1204,15 @@ public class UserService {
 
         }
         // If allVideos is not empty and allVideos size it less than 10
-        else if (!allPods.isEmpty() && allPods.size() < 10) {
+        else if (allPods.size() > 0 && allPods.size() < 10) {
+            System.out.println("person has seen all pods but a few");
+            System.out.println("allPods is not empty && size < 10");
             // extract missing amount of videos
             int numberOfPodsToAdd = 10 - allPods.size();
+
+            System.out.println("");
+            System.out.println("the allPods size was: " + allPods.size());
+            System.out.println("we need to add: " + numberOfPodsToAdd);
 
             // get all videos
             List<Pod> allPods2 = podService.findAllPods();
@@ -1189,7 +1237,9 @@ public class UserService {
                 top10pods.add(sortAllPods.get(i));
             }
         }
+        // person has seen all videos
         else if (allPods.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
+            System.out.println("person has seen all pods");
             // Get all videos
             allPods = podService.findAllPods();
 

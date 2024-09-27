@@ -48,6 +48,13 @@ public class Music {
     public Music() {
     }
 
+    public Music(String type, String title, String url, String releaseDate) {
+        this.type = type;
+        this.title = title;
+        this.url = url;
+        this.releaseDate = releaseDate;
+    }
+
     public Music(long id, String title, String url, String releaseDate, List<Genre> genres, List<Album> albums, List<Artist> artists) {
         this.id = id;
         this.type = "music";

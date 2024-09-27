@@ -2,6 +2,7 @@ package UserService.userService.services;
 
 import UserService.userService.repositories.VideoRepository;
 import UserService.userService.vo.Music;
+import UserService.userService.vo.Pod;
 import UserService.userService.vo.Video;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,12 @@ public class VideoService {
         Optional<Video> optionalVideo = videoRepository.findByUrlIgnoreCase(url);
 
         return optionalVideo.orElse(null);
+    }
+
+    public Video addPlay(Video video) {
+        video.countPlay();
+        videoRepository.save(video);
+
+        return video;
     }
 }

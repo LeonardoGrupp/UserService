@@ -130,7 +130,7 @@ public class UserService {
                     System.out.println(genre.getGenre());
 
                     // if the genre has not been played - create it
-                    if (!hasPlayedGenreBefore(user, genre)) {
+                    if (!hasPlayedMusicGenreBefore(user, genre)) {
                         System.out.println("genre was not played before - creating");
                         PlayedGenre playedGenre = playedGenreService.createFromMusicGenres(genre);
                         genreService.addPlay(genre);
@@ -146,7 +146,7 @@ public class UserService {
                         // add +1 in play
                         PlayedGenre playedGenre = null;
                         for (PlayedGenre playedGenreOfUser : user.getPlayedGenre()) {
-                            if (playedGenreOfUser.getGenre().equalsIgnoreCase(genre.getGenre())) {
+                            if (playedGenreOfUser.getGenre().equalsIgnoreCase(genre.getGenre()) && playedGenreOfUser.getType().equalsIgnoreCase("music")) {
                                 playedGenre = playedGenreOfUser;
                             }
                         }
@@ -214,7 +214,8 @@ public class UserService {
                     playedGenreService.save(genre);
                     System.out.println("counted play for genre");
 
-                    Genre genreToPlay = genreService.findGenreByGenre(genre.getGenre());
+                    // TODO MAKE IT GET MUSIC TYPE
+                    Genre genreToPlay = genreService.findGenreByGenreTypeMusic(genre.getGenre());
                     genreService.addPlay(genreToPlay);
                     System.out.println("the genre has been counted play");
                 }
@@ -225,7 +226,7 @@ public class UserService {
         } else if (isPod(url)) {
             System.out.println("its pod");
 
-            // If person has NOT watched the video before - create it
+            // If person has NOT listened to the song before - create it
             if (!hasPlayedMediaBefore(user, url)) {
                 System.out.println("pod has not been played");
 
@@ -247,15 +248,16 @@ public class UserService {
                 System.out.println("Creating empty playedGenreList");
                 List<PlayedGenre> playedGenreList = new ArrayList<>();
 
-                // Check all genres in music media
+                // Check all genres in pod media
                 System.out.println("Checking genre:");
                 for (Genre genre : mediaToPlay.getGenres()) {
                     System.out.println(genre.getGenre());
 
                     // if the genre has not been played - create it
-                    if (!hasPlayedGenreBefore(user, genre)) {
+                    if (!hasPlayedPodGenreBefore(user, genre)) {
                         System.out.println("genre was not played before - creating");
                         PlayedGenre playedGenre = playedGenreService.createFromPodGenres(genre);
+                        genreService.addPlay(genre);
 
                         user.addGenreToPlayedGenre(playedGenre);
                         userRepository.save(user);
@@ -264,14 +266,35 @@ public class UserService {
 
                     } else {
                         System.out.println("genre was found - adding +1");
+
                         // add +1 in play
-                        PlayedGenre playedGenre = playedGenreService.findPlayedGenreByName(genre.getGenre());
+                        PlayedGenre playedGenre = null;
+                        for (PlayedGenre playedGenreOfUser : user.getPlayedGenre()) {
+                            if (playedGenreOfUser.getGenre().equalsIgnoreCase(genre.getGenre()) && playedGenreOfUser.getType().equalsIgnoreCase("pod")) {
+                                playedGenre = playedGenreOfUser;
+                            }
+                        }
+
+                        if (playedGenre == null) {
+                            System.out.println("ERROR PLAYED GENRE IS NULL");
+                            return null;
+                        }
+
+                        genreService.addPlay(genre);
+
+                        System.out.println("got genre");
                         playedGenre.countPlay();
+                        System.out.println("counted play");
                         PlayedGenre savedGenre = playedGenreService.save(playedGenre);
+
+                        System.out.println("saved genre");
 
                         playedGenreList.add(savedGenre);
 
+                        System.out.println("added savedGenre to person");
+
                     }
+
                 }
 
                 PlayedMedia savedMedia;
@@ -284,6 +307,9 @@ public class UserService {
                     System.out.println("UserService: playedGenreList was not empty - sending list to create");
                     savedMedia = playedMediaService.createPodFromUserWithList(mediaToPlay, playedGenreList);
                 }
+
+                System.out.println("adding play to Pod-object");
+                podService.addPlay(mediaToPlay);
 
                 System.out.println("media came back and created");
 
@@ -298,15 +324,23 @@ public class UserService {
 
 
             } else {
-                System.out.println("video has been viewed");
+                System.out.println("pod has been played");
                 // Else if person HAS listened to song - get it from persons list, add play+1 and return
                 PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                System.out.println("adding play to Pod-object");
+                Pod mediaToPlay = getPodByUrl(url);
+                podService.addPlay(mediaToPlay);
 
                 mediaBeenPlayed.countPlay();
                 for (PlayedGenre genre : mediaBeenPlayed.getGenres()) {
                     genre.countPlay();
                     playedGenreService.save(genre);
                     System.out.println("counted play for genre");
+
+                    Genre genreToPlay = genreService.findGenreByGenre(genre.getGenre());
+                    genreService.addPlay(genreToPlay);
+                    System.out.println("the genre has been counted play");
                 }
                 System.out.println("pod has been counted play");
 
@@ -315,7 +349,7 @@ public class UserService {
         } else if (isVideo(url)) {
             System.out.println("its video");
 
-            // If person has NOT watched the video before - create it
+            // If person has NOT listened to the song before - create it
             if (!hasPlayedMediaBefore(user, url)) {
                 System.out.println("video has not been played");
 
@@ -337,7 +371,7 @@ public class UserService {
                 System.out.println("Creating empty playedGenreList");
                 List<PlayedGenre> playedGenreList = new ArrayList<>();
 
-                // Check all genres in music media
+                // Check all genres in pod media
                 System.out.println("Checking genre:");
                 for (Genre genre : mediaToPlay.getGenres()) {
                     System.out.println(genre.getGenre());
@@ -346,6 +380,7 @@ public class UserService {
                     if (!hasPlayedVideoGenreBefore(user, genre)) {
                         System.out.println("genre was not played before - creating");
                         PlayedGenre playedGenre = playedGenreService.createFromVideoGenres(genre);
+                        genreService.addPlay(genre);
 
                         user.addGenreToPlayedGenre(playedGenre);
                         userRepository.save(user);
@@ -354,18 +389,39 @@ public class UserService {
 
                     } else {
                         System.out.println("genre was found - adding +1");
+
                         // add +1 in play
-                        PlayedGenre playedGenre = playedGenreService.findPlayedGenreByName(genre.getGenre());
+                        PlayedGenre playedGenre = null;
+                        for (PlayedGenre playedGenreOfUser : user.getPlayedGenre()) {
+                            if (playedGenreOfUser.getGenre().equalsIgnoreCase(genre.getGenre()) && playedGenreOfUser.getType().equalsIgnoreCase("video")) {
+                                playedGenre = playedGenreOfUser;
+                            }
+                        }
+
+                        if (playedGenre == null) {
+                            System.out.println("ERROR PLAYED GENRE IS NULL");
+                            return null;
+                        }
+
+                        genreService.addPlay(genre);
+
+                        System.out.println("got genre");
                         playedGenre.countPlay();
+                        System.out.println("counted play");
                         PlayedGenre savedGenre = playedGenreService.save(playedGenre);
+
+                        System.out.println("saved genre");
 
                         playedGenreList.add(savedGenre);
 
+                        System.out.println("added savedGenre to person");
+
                     }
+
                 }
 
                 PlayedMedia savedMedia;
-                System.out.println("sending video to playedMediaService.createVideoFromUser()");
+                System.out.println("sending video to playedMediaService.createPodFromUser()");
                 // Creating played media
                 if (playedGenreList.isEmpty()) {
                     System.out.println("UserService: PlayedGenreList was empty!!!");
@@ -374,6 +430,9 @@ public class UserService {
                     System.out.println("UserService: playedGenreList was not empty - sending list to create");
                     savedMedia = playedMediaService.createVideoFromUserWithList(mediaToPlay, playedGenreList);
                 }
+
+                System.out.println("adding play to Pod-object");
+                videoService.addPlay(mediaToPlay);
 
                 System.out.println("media came back and created");
 
@@ -388,15 +447,23 @@ public class UserService {
 
 
             } else {
-                System.out.println("video has been viewed");
+                System.out.println("video has been played");
                 // Else if person HAS listened to song - get it from persons list, add play+1 and return
                 PlayedMedia mediaBeenPlayed = getMediaFromUsersMediaList(user, url);
+
+                System.out.println("adding play to Video-object");
+                Video mediaToPlay = getVideoByUrl(url);
+                videoService.addPlay(mediaToPlay);
 
                 mediaBeenPlayed.countPlay();
                 for (PlayedGenre genre : mediaBeenPlayed.getGenres()) {
                     genre.countPlay();
                     playedGenreService.save(genre);
                     System.out.println("counted play for genre");
+
+                    Genre genreToPlay = genreService.findGenreByGenreTypeVideo(genre.getGenre());
+                    genreService.addPlay(genreToPlay);
+                    System.out.println("the genre has been counted play");
                 }
                 System.out.println("video has been counted play");
 
@@ -704,16 +771,28 @@ public class UserService {
         return false;
     }
 
-    public boolean hasPlayedGenreBefore(User user, Genre genre) {
+    public boolean hasPlayedMusicGenreBefore(User user, Genre genre) {
         List<PlayedGenre> playedGenreListForUser = getUsersPlayedGenreList(user);
 
 
         for (PlayedGenre playedGenre : playedGenreListForUser) {
-            if (playedGenre.getGenre().equals(genre.getGenre())) {
+            if (playedGenre.getGenre().equals(genre.getGenre()) && playedGenre.getType().equalsIgnoreCase("music")) {
                 return true;
             }
         }
 
+
+        return false;
+    }
+
+    public boolean hasPlayedPodGenreBefore(User user, Genre genre) {
+        List<PlayedGenre> playedGenreListOfUser = getUsersPlayedGenreList(user);
+
+        for (PlayedGenre playedGenre : playedGenreListOfUser) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genre.getGenre()) && playedGenre.getType().equalsIgnoreCase("pod")) {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -723,7 +802,7 @@ public class UserService {
 
 
         for (PlayedGenre playedGenre : playedGenreListForUser) {
-            if (playedGenre.getGenre().equals(genre.getGenre())) {
+            if (playedGenre.getGenre().equals(genre.getGenre()) && playedGenre.getType().equalsIgnoreCase("video")) {
                 return true;
             }
         }
@@ -785,41 +864,156 @@ public class UserService {
         return videoToPlay;
     }
 
+    public List<Video> videoRecommendations(long id) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            System.out.println("USER NULL (VIDEO RECOMMENDATION)");
+            return null;
+        }
+
+        System.out.println("going into totalTop10Videos");
+        return totalTop10Videos(user);
+    }
+
+    public List<Pod> podRecommendations(long id) {
+        User user = findUserById(id);
+
+        if (user == null) {
+            System.out.println("USER NULL (POD RECOMMENDATION)");
+            return null;
+        }
+        System.out.println("going into totalTop10Pods");
+        return totalTop10Pods(user);
+    }
+
     public List<Music> musicRecommendations(long id) {
         User user = findUserById(id);
 
         if (user == null) {
-            System.out.println("USER NULL");
+            System.out.println("USER NULL (MUSIC RECOMMENDATION)");
             return null;
         }
-
+        System.out.println("going into totalTop10Songs");
         return totalTop10Songs(user);
     }
 
-    public List<PlayedGenre> getUsersMostPlayedGenresSortedByPlays(User user) {
+    public List<PlayedGenre> getUsersMostPlayedGenresSortedByPlays(User user, String type) {
         List<PlayedGenre> usersGenres = user.getPlayedGenre();
 
-        List<PlayedGenre> sortedFullGenreList = usersGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
-
         List<PlayedGenre> sortedTopGenreList = new ArrayList<>();
-        if (sortedFullGenreList.size() >= 3) {
-            for (int i = 0; i < 3; i++) {
-                sortedTopGenreList.add(sortedFullGenreList.get(i));
+
+        if (type.equalsIgnoreCase("music")) {
+
+            List<PlayedGenre> userMusicGenres = new ArrayList<>();
+            for (PlayedGenre playedGenre : usersGenres) {
+                if (playedGenre.getType().equalsIgnoreCase("music")) {
+                    userMusicGenres.add(playedGenre);
+                }
             }
-        } else if (sortedFullGenreList.size() < 3) {
-            for (int i = 0; i < sortedFullGenreList.size(); i++) {
-                sortedTopGenreList.add(sortedFullGenreList.get(i));
+
+
+            List<PlayedGenre> sortedFullGenreList = userMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+
+
+            if (sortedFullGenreList.size() >= 3) {
+                for (int i = 0; i < 3; i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
+            } else if (sortedFullGenreList.size() < 3) {
+                for (int i = 0; i < sortedFullGenreList.size(); i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
             }
         }
+        if (type.equalsIgnoreCase("pod")) {
 
+            List<PlayedGenre> userPodGenres = new ArrayList<>();
+            for (PlayedGenre playedGenre : userPodGenres) {
+                if (playedGenre.getType().equalsIgnoreCase("pod")) {
+                    userPodGenres.add(playedGenre);
+                }
+            }
+
+            List<PlayedGenre> sortedFullGenreList = userPodGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+
+
+            if (sortedFullGenreList.size() >= 3) {
+                for (int i = 0; i < 3; i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
+            } else if (sortedFullGenreList.size() < 3) {
+                for (int i = 0; i < sortedFullGenreList.size(); i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
+            }
+        }
+        if (type.equalsIgnoreCase("video")) {
+
+            List<PlayedGenre> userVideoGenres = new ArrayList<>();
+            for (PlayedGenre playedGenre : userVideoGenres) {
+                if (playedGenre.getType().equalsIgnoreCase("video")) {
+                    userVideoGenres.add(playedGenre);
+                }
+            }
+
+            List<PlayedGenre> sortedFullGenreList = userVideoGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+
+
+            if (sortedFullGenreList.size() >= 3) {
+                for (int i = 0; i < 3; i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
+            } else if (sortedFullGenreList.size() < 3) {
+                for (int i = 0; i < sortedFullGenreList.size(); i++) {
+                    sortedTopGenreList.add(sortedFullGenreList.get(i));
+                }
+            }
+        }
 
         return sortedTopGenreList;
     }
 
-    public List<PlayedGenre> sortAllPlayedGenresByPlays(User user) {
+    public List<PlayedGenre> sortAllPlayedGenresByPlays(User user, String type) {
+        System.out.println("sortAllPlayedGenresByPlayed");
         List<PlayedGenre> usersGenres = user.getPlayedGenre();
 
-        List<PlayedGenre> sortedGenreList = usersGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+        List<PlayedGenre> userGenresToSendBack = new ArrayList<>();
+
+        if (type.equals("music")) {
+            System.out.println("type was music");
+            for (PlayedGenre playedGenre : usersGenres) {
+                if (playedGenre.getType().equals("music")) {
+                    System.out.println("adding playedGenre: " + playedGenre.getGenre());
+                    userGenresToSendBack.add(playedGenre);
+                }
+            }
+            System.out.println("all music genres added.");
+        }
+        if (type.equals("pod")) {
+            System.out.println("type was pod");
+            for (PlayedGenre playedGenre : usersGenres) {
+                if (playedGenre.getType().equals("pod")) {
+                    userGenresToSendBack.add(playedGenre);
+                }
+            }
+            System.out.println("all pod genres was added");
+        }
+        if (type.equals("video")) {
+            System.out.println("type was video");
+            for (PlayedGenre playedGenre : usersGenres) {
+                if (playedGenre.getType().equals("video")) {
+                    userGenresToSendBack.add(playedGenre);
+                }
+            }
+            System.out.println("all video genres was added");
+        }
+
+        System.out.println("sorting list");
+
+        List<PlayedGenre> sortedGenreList = userGenresToSendBack.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+
+        System.out.println("returning list");
 
         return sortedGenreList;
     }
@@ -836,6 +1030,18 @@ public class UserService {
         return sortedMusicList;
     }
 
+    public List<Video> sortAllVideosByPlays(List<Video> videoList) {
+        List<Video> sortedVideoList = videoList.stream().sorted(Comparator.comparingInt(Video::getPlayCounter).reversed()).collect(Collectors.toList());
+
+        return sortedVideoList;
+    }
+
+    public List<Pod> sortAllPodsByPlays(List<Pod> podList) {
+        List<Pod> sortedPodList = podList.stream().sorted(Comparator.comparingInt(Pod::getPlayCounter).reversed()).collect(Collectors.toList());
+
+        return sortedPodList;
+    }
+
     public List<Genre> convertUserPlayedGenresToGenre(List<PlayedGenre> playedGenreList) {
 
         List<Genre> topGenres = new ArrayList<>();
@@ -846,9 +1052,164 @@ public class UserService {
         return topGenres;
     }
 
+    public List<Video> totalTop10Videos(User user) {
+        List<Video> allVideos = videoService.findAllVideos();
+
+        List<Video> videosToDelete = new ArrayList<>();
+
+        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
+            for (Video video : allVideos) {
+                if (playedMedia.getType().equalsIgnoreCase("video")) {
+                    videosToDelete.add(video);
+                }
+            }
+        }
+
+        if (!videosToDelete.isEmpty()) {
+            for (Video video : videosToDelete) {
+                allVideos.remove(video);
+            }
+        }
+
+        List<Video> top10videos = new ArrayList<>();
+
+        // if lista is not empty - return most listened pods that user has not listened to
+        if (allVideos.size() >= 10) {
+            List<Video> sortedAllVideos = sortAllVideosByPlays(allVideos);
+
+
+            // extract top 10
+            for (int i = 0; i < 10; i++) {
+                top10videos.add(sortedAllVideos.get(i));
+            }
+
+        }
+        // If allVideos is not empty and allVideos size it less than 10
+        else if (!allVideos.isEmpty() && allVideos.size() < 10) {
+            // extract missing amount of videos
+            int numberOfVideosToAdd = 10 - allVideos.size();
+
+            // get all videos
+            List<Video> allVideos2 = videoService.findAllVideos();
+
+            // delete the videos in allVideos2 that is already in allVideos
+            for (Video video : allVideos) {
+                allVideos2.remove(video);
+            }
+
+            // sort allVideos2 by most played
+            List<Video> sortedAllVideos2 = sortAllVideosByPlays(allVideos2);
+
+            // pick the remaining videos and add to allVideos
+            for (int i = 0; i < numberOfVideosToAdd; i++) {
+                allVideos.add(allVideos2.get(i));
+            }
+
+            // sort allVideos
+            List<Video> sortAllVideos = sortAllVideosByPlays(allVideos);
+
+            for (int i = 0; i < 10; i++) {
+                top10videos.add(sortAllVideos.get(i));
+            }
+        }
+        else if (allVideos.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
+            // Get all videos
+            allVideos = videoService.findAllVideos();
+
+            // sort videos by plays
+            List<Video> sortedAllVideos = sortAllVideosByPlays(allVideos);
+
+            // add to top 10
+            for (int i = 0; i < 10; i++) {
+                top10videos.add(sortedAllVideos.get(i));
+            }
+
+        }
+
+        return top10videos;
+    }
+
+    public List<Pod> totalTop10Pods(User user) {
+        List<Pod> allPods = podService.findAllPods();
+
+        List<Pod> podsToDelete = new ArrayList<>();
+
+        for (PlayedMedia playedMedia : user.getPlayedMedia()) {
+            for (Pod pod : allPods) {
+                if (playedMedia.getType().equalsIgnoreCase("pod")) {
+                    podsToDelete.add(pod);
+                }
+            }
+        }
+
+        if (!podsToDelete.isEmpty()) {
+            for (Pod pod : podsToDelete) {
+                allPods.remove(pod);
+            }
+        }
+
+        List<Pod> top10pods = new ArrayList<>();
+
+        // if lista is not empty - return most listened pods that user has not listened to
+        if (allPods.size() >= 10) {
+            List<Pod> sortedAllPods = sortAllPodsByPlays(allPods);
+
+
+            // extract top 10
+            for (int i = 0; i < 10; i++) {
+                top10pods.add(sortedAllPods.get(i));
+            }
+
+        }
+        // If allVideos is not empty and allVideos size it less than 10
+        else if (!allPods.isEmpty() && allPods.size() < 10) {
+            // extract missing amount of videos
+            int numberOfPodsToAdd = 10 - allPods.size();
+
+            // get all videos
+            List<Pod> allPods2 = podService.findAllPods();
+
+            // delete the videos in allVideos2 that is already in allVideos
+            for (Pod pod : allPods) {
+                allPods2.remove(pod);
+            }
+
+            // sort allVideos2 by most played
+            List<Pod> sortedAllPods2 = sortAllPodsByPlays(allPods2);
+
+            // pick the remaining videos and add to allVideos
+            for (int i = 0; i < numberOfPodsToAdd; i++) {
+                allPods.add(allPods2.get(i));
+            }
+
+            // sort allVideos
+            List<Pod> sortAllPods = sortAllPodsByPlays(allPods);
+
+            for (int i = 0; i < 10; i++) {
+                top10pods.add(sortAllPods.get(i));
+            }
+        }
+        else if (allPods.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
+            // Get all videos
+            allPods = podService.findAllPods();
+
+            // sort videos by plays
+            List<Pod> sortedAllPods = sortAllPodsByPlays(allPods);
+
+            // add to top 10
+            for (int i = 0; i < 10; i++) {
+                top10pods.add(sortedAllPods.get(i));
+            }
+
+        }
+
+        return top10pods;
+    }
+
     public List<Music> totalTop10Songs(User user) {
+        System.out.println("in top 10 songs");
         // Sort users PlayerGenres by most played
-        List<PlayedGenre> sortedPlayedGenres = sortAllPlayedGenresByPlays(user);
+        List<PlayedGenre> sortedPlayedGenres = sortAllPlayedGenresByPlays(user, "music");
         System.out.println("");
         System.out.println("Users all played genres - sorted:");
         for (PlayedGenre playedGenre : sortedPlayedGenres) {
@@ -869,7 +1230,7 @@ public class UserService {
 
         // TODO
         // Get all genres
-        List<Genre> allGenres = getUnlistenedGenres(user);
+        List<Genre> allGenres = getUnlistenedGenres(user, "music");
 
         System.out.println("");
         System.out.println("allGenres should now be lower: " + allGenres.size());
@@ -885,7 +1246,7 @@ public class UserService {
         // Get list of Music from topGenre:
         List<Music> music = musicService.findAllMusicInGenre(topGenre);
 
-        // TODO IF MUSIC IS EMPTY - get from top played genres - this means there are no unlistened genres anymore.
+        // IF MUSIC IS EMPTY - get from top played genres - this means there are no unlistened genres anymore.
         if (music.isEmpty()) {
             List<Genre> everyGenre = genreService.getAllGenres();
             List<Genre> sortedEveryGenre = sortGenresByPlays(everyGenre);
@@ -949,7 +1310,7 @@ public class UserService {
     public List<Music> getTop8SongsFromUsersTopGenres(User user, int size) {
         System.out.println("inside method - getting users top played genres");
         // Extract top 3 Genres
-        List<PlayedGenre> usersTopPlayedGenres = getUsersMostPlayedGenresSortedByPlays(user);
+        List<PlayedGenre> usersTopPlayedGenres = getUsersMostPlayedGenresSortedByPlays(user, "music");
         System.out.println("");
         System.out.println("Extrect top 3 genres");
 
@@ -1142,9 +1503,53 @@ public class UserService {
         return topSongs;
     }
 
-    public List<Genre> getUnlistenedGenres(User user) {
+    public List<Genre> getUnlistenedGenres(User user, String type) {
         List<Genre> allGenres = genreService.getAllGenres();
         List<PlayedGenre> userGenres = user.getPlayedGenre();
+
+        // If type is Music - remove all other genres
+        if (type.equalsIgnoreCase("music")) {
+            List<Genre> nonMusicGenres = new ArrayList<>();
+
+            for (Genre genre : allGenres) {
+                if (!genre.getType().equalsIgnoreCase("music")) {
+                    nonMusicGenres.add(genre);
+                }
+            }
+
+            for (Genre genre : nonMusicGenres) {
+                allGenres.remove(genre);
+            }
+
+        }
+        // If type is Pod - remove all other genres
+        if (type.equalsIgnoreCase("pod")) {
+            List<Genre> nonPodGenres = new ArrayList<>();
+
+            for (Genre genre : allGenres) {
+                if (!genre.getType().equalsIgnoreCase("pod")) {
+                    nonPodGenres.add(genre);
+                }
+            }
+
+            for (Genre genre : nonPodGenres) {
+                allGenres.remove(genre);
+            }
+        }
+        // If type is Video - remove all other genres
+        if (type.equalsIgnoreCase("video")) {
+            List<Genre> nonVideoGenres = new ArrayList<>();
+
+            for (Genre genre : allGenres) {
+                if (!genre.getType().equalsIgnoreCase("video")) {
+                    nonVideoGenres.add(genre);
+                }
+            }
+
+            for (Genre genre : nonVideoGenres) {
+                allGenres.remove(genre);
+            }
+        }
 
         List<Genre> genresToDelete = new ArrayList<>();
 

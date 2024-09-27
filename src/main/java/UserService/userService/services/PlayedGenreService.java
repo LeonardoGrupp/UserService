@@ -29,6 +29,27 @@ public class PlayedGenreService {
         return playedGenreRepository.findPlayedGenreByGenreIgnoreCase(genre);
     }
 
+    public PlayedGenre findPlayedVideoGenreByName(String genre) {
+        List<PlayedGenre> allGenres = playedGenreRepository.findAll();
+
+        List<PlayedGenre> allVideoGenres = new ArrayList<>();
+
+        for (PlayedGenre playedGenre : allGenres) {
+            if (playedGenre.getType().equalsIgnoreCase("video")) {
+                allVideoGenres.add(playedGenre);
+            }
+        }
+
+        for (PlayedGenre playedGenre : allVideoGenres) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genre)) {
+                return playedGenre;
+            }
+        }
+
+        System.out.println("NO VIDEO WITH THAT NAME WAS FOUND");
+        return null;
+    }
+
     public PlayedGenre findPlayedGenreById(long id) {
         Optional<PlayedGenre> optionalPlayedGenre = playedGenreRepository.findById(id);
 
@@ -40,28 +61,15 @@ public class PlayedGenreService {
     }
 
     public PlayedGenre createFromMusicGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "music"));
     }
 
     public PlayedGenre createFromPodGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "pod"));
     }
 
     public PlayedGenre createFromVideoGenres(Genre genre) {
-        return playedGenreRepository.save(new PlayedGenre(genre.getGenre()));
-    }
-
-    public List<PlayedGenre> createFromMusic(Music music) {
-        List<PlayedGenre> playedGenreList = new ArrayList<>();
-
-        for (Genre genre : music.getGenres()) {
-            PlayedGenre playedGenre = new PlayedGenre(genre.getGenre());
-
-            playedGenreRepository.save(playedGenre);
-            playedGenreList.add(playedGenre);
-        }
-
-        return playedGenreList;
+        return playedGenreRepository.save(new PlayedGenre(genre.getGenre(), "video"));
     }
 
     public PlayedGenre save(PlayedGenre playedGenre) {

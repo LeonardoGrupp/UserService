@@ -10,6 +10,7 @@ public class PlayedGenre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String genre;
+    private String type;
     @Column(name = "total_plays")
     private int totalPlays;
     @Column(name = "is_liked")
@@ -20,8 +21,9 @@ public class PlayedGenre {
     public PlayedGenre() {
     }
 
-    public PlayedGenre(String genre) {
+    public PlayedGenre(String genre, String type) {
         this.genre = genre;
+        this.type = type;
         this.totalPlays += 1;
         this.isLiked = false;
         this.isDisliked = false;
@@ -41,6 +43,14 @@ public class PlayedGenre {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public int getTotalPlays() {

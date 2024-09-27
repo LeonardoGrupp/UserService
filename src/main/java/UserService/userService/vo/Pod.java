@@ -146,4 +146,8 @@ public class Pod {
     public void setArtists(List<Artist> artists) {
         this.artists = artists;
     }
+
+    public void countPlay() {
+        playCounter += 1;
+    }
 }

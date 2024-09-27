@@ -14,12 +14,10 @@ import java.util.Optional;
 public class PlayedMediaService {
 
     private PlayedMediaRepository playedMediaRepository;
-    private PlayedGenreService playedGenreService;
 
     @Autowired
-    public PlayedMediaService(PlayedMediaRepository playedMediaRepository, PlayedGenreService playedGenreService) {
+    public PlayedMediaService(PlayedMediaRepository playedMediaRepository) {
         this.playedMediaRepository = playedMediaRepository;
-        this.playedGenreService = playedGenreService;
     }
 
     public List<PlayedMedia> allPlayedMedia() {

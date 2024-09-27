@@ -31,8 +31,8 @@ public class PodController {
         return ResponseEntity.ok(podService.findAllPods());
     }
 
-//    @GetMapping("/recommendations/{id}")
-//    public ResponseEntity<List<Pod>> podRecommendations(@PathVariable("id") long id) {
-//        return ResponseEntity.ok(userService.podRecommendations(id));
-//    }
+    @GetMapping("/recommendations/{id}")
+    public ResponseEntity<List<Pod>> podRecommendations(@PathVariable("id") long id) {
+        return ResponseEntity.ok(userService.podRecommendations(id));
+    }
 }

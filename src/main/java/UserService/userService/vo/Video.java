@@ -147,4 +147,8 @@ public class Video {
     public void setArtists(List<Artist> artists) {
         this.artists = artists;
     }
+
+    public void countPlay() {
+        playCounter += 1;
+    }
 }

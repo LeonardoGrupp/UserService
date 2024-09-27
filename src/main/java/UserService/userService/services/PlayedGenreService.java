@@ -29,6 +29,27 @@ public class PlayedGenreService {
         return playedGenreRepository.findPlayedGenreByGenreIgnoreCase(genre);
     }
 
+    public PlayedGenre findPlayedVideoGenreByName(String genre) {
+        List<PlayedGenre> allGenres = playedGenreRepository.findAll();
+
+        List<PlayedGenre> allVideoGenres = new ArrayList<>();
+
+        for (PlayedGenre playedGenre : allGenres) {
+            if (playedGenre.getType().equalsIgnoreCase("video")) {
+                allVideoGenres.add(playedGenre);
+            }
+        }
+
+        for (PlayedGenre playedGenre : allVideoGenres) {
+            if (playedGenre.getGenre().equalsIgnoreCase(genre)) {
+                return playedGenre;
+            }
+        }
+
+        System.out.println("NO VIDEO WITH THAT NAME WAS FOUND");
+        return null;
+    }
+
     public PlayedGenre findPlayedGenreById(long id) {
         Optional<PlayedGenre> optionalPlayedGenre = playedGenreRepository.findById(id);
 

@@ -340,7 +340,7 @@ public class UserService {
                     playedGenreService.save(genre);
                     System.out.println("counted play for genre");
 
-                    Genre genreToPlay = genreService.findGenreByGenre(genre.getGenre());
+                    Genre genreToPlay = genreService.findGenreByGenreTypePod(genre.getGenre());
                     genreService.addPlay(genreToPlay);
                     System.out.println("the genre has been counted play");
                 }
@@ -710,7 +710,7 @@ public class UserService {
         return null;
     }
 
-    public Music testingMusic(String url) {
+    public Music findMusicByUrl(String url) {
         Music music = getMusicByUrl(url);
 
         System.out.println("Testing to see all genres within music");

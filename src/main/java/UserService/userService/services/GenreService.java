@@ -3,7 +3,9 @@ package UserService.userService.services;
 import UserService.userService.repositories.GenreRepository;
 import UserService.userService.vo.Genre;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +43,7 @@ public class GenreService {
             }
         }
 
-        System.out.println("genre was not found in music with name: " + genreName);
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: NOT FOUND");
     }
 
     public Genre findGenreByGenreTypePod(String genreName) {
@@ -60,8 +61,7 @@ public class GenreService {
             }
         }
 
-        System.out.println("genre was not found in pod with name: " + genreName);
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: NOT FOUND");
     }
 
     public Genre findGenreByGenreTypeVideo(String genreName) {
@@ -79,8 +79,7 @@ public class GenreService {
             }
         }
 
-        System.out.println("genre was not found in video with name: " + genreName);
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: NOT FOUND");
     }
 
     public Genre addPlay(Genre genre) {

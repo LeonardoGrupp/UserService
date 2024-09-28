@@ -20,6 +20,11 @@ public class Genre {
         this.genre = genre;
     }
 
+    public Genre(String genre, String type) {
+        this.genre = genre;
+        this.type = type;
+    }
+
     public long getId() {
         return id;
     }

@@ -28,7 +28,7 @@ public class GenreController {
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<Genre> allGenresByName(@PathVariable("name") String name) {
+    public ResponseEntity<Genre> findGenreByName(@PathVariable("name") String name) {
         return ResponseEntity.ok(genreService.findGenreByGenre(name));
     }
 }

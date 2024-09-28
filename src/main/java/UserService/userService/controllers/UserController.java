@@ -88,7 +88,7 @@ public class UserController {
     }
 
     @GetMapping("/songtest/{url}")
-    public ResponseEntity<Music> testingMusic(@PathVariable("url") String url) {
-        return ResponseEntity.ok(userService.testingMusic(url));
+    public ResponseEntity<Music> findMusicByUrl(@PathVariable("url") String url) {
+        return ResponseEntity.ok(userService.findMusicByUrl(url));
     }
 }

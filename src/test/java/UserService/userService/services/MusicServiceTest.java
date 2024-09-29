@@ -84,7 +84,7 @@ class MusicServiceTest {
 
         ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
             musicService.findMusicByUrl("url");
-        }, "ERROR: Exception was not thronw");
+        }, "ERROR: Exception was not thrown");
 
         assertEquals("ERROR: Could not be found", response.getReason(), "ERROR: Exceptions was not identical");
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "ERROR: Status Codes was not identical");

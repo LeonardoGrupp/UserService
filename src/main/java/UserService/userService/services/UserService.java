@@ -14,10 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,11 +46,23 @@ public class UserService {
     }
 
     public User findUserById(long id) {
-        return userRepository.findById(id).orElse(null);
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isPresent()) {
+            return optionalUser.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: not found");
+        }
     }
 
     public User findUserByUsername(String username) {
-        return userRepository.findUserByUsername(username);
+        User user = userRepository.findUserByUsername(username);
+
+        if (user != null) {
+            return user;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: not found");
+        }
     }
 
     public User create(User user) {
@@ -67,10 +76,6 @@ public class UserService {
     public User updateUser(long id, User newInfo) {
         User existingUser = findUserById(id);
 
-        if (existingUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
-
         if (!newInfo.getUsername().isEmpty() && newInfo.getUsername() != null && !newInfo.getUsername().equals(existingUser.getUsername())) {
             existingUser.setUsername(newInfo.getUsername());
         }
@@ -80,10 +85,6 @@ public class UserService {
 
     public String delete(long id) {
         User userToDelete = findUserById(id);
-
-        if (userToDelete == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
 
         userRepository.delete(userToDelete);
 
@@ -102,22 +103,12 @@ public class UserService {
 
         // get music by url, get video by url, get pod by url -  skicka med type till hasPlayedMediaBefore
         if (isMusic(url)) {
-            System.out.println("its music");
 
             // If person has NOT listened to the song before - create it
             if (!hasPlayedMediaBefore(user, url)) {
-                System.out.println("music has not been played");
 
                 // Get Media
                 Music mediaToPlay = getMusicByUrl(url);
-                System.out.println("recieved music");
-
-                System.out.println();
-                System.out.println("Genres:");
-                for (Genre genre : mediaToPlay.getGenres()) {
-                    System.out.println(genre.getGenre());
-                }
-
 
                 if (mediaToPlay == null) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Media not found with URL: " + url);
@@ -836,21 +827,11 @@ public class UserService {
     public Music getMusicByUrl(String url) {
         Music musicToPlay = musicService.findMusicByUrl(url);
 
-        if (musicToPlay == null) {
-            System.out.println("ERROR - Music is null");
-            return null;
-        }
-
         return musicToPlay;
     }
 
     public Pod getPodByUrl(String url) {
         Pod podToPlay = podService.findPodByUrl(url);
-
-        if (podToPlay == null) {
-            System.out.println("ERROR - Pod is null");
-            return null;
-        }
 
         return podToPlay;
     }
@@ -858,21 +839,11 @@ public class UserService {
     public Video getVideoByUrl(String url) {
         Video videoToPlay = videoService.findVideoByUrl(url);
 
-        if (videoToPlay == null) {
-            System.out.println("ERROR - Video is null");
-            return null;
-        }
-
         return videoToPlay;
     }
 
     public List<Video> videoRecommendations(long id) {
         User user = findUserById(id);
-
-        if (user == null) {
-            System.out.println("USER NULL (VIDEO RECOMMENDATION)");
-            return null;
-        }
 
         System.out.println("going into totalTop10Videos");
         return totalTop10Videos(user);
@@ -881,10 +852,6 @@ public class UserService {
     public List<Pod> podRecommendations(long id) {
         User user = findUserById(id);
 
-        if (user == null) {
-            System.out.println("USER NULL (POD RECOMMENDATION)");
-            return null;
-        }
         System.out.println("going into totalTop10Pods");
         return totalTop10Pods(user);
     }
@@ -892,10 +859,6 @@ public class UserService {
     public List<Music> musicRecommendations(long id) {
         User user = findUserById(id);
 
-        if (user == null) {
-            System.out.println("USER NULL (MUSIC RECOMMENDATION)");
-            return null;
-        }
         System.out.println("going into totalTop10Songs");
         return totalTop10Songs(user);
     }
@@ -931,7 +894,7 @@ public class UserService {
         if (type.equalsIgnoreCase("pod")) {
 
             List<PlayedGenre> userPodGenres = new ArrayList<>();
-            for (PlayedGenre playedGenre : userPodGenres) {
+            for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("pod")) {
                     userPodGenres.add(playedGenre);
                 }
@@ -953,7 +916,7 @@ public class UserService {
         if (type.equalsIgnoreCase("video")) {
 
             List<PlayedGenre> userVideoGenres = new ArrayList<>();
-            for (PlayedGenre playedGenre : userVideoGenres) {
+            for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("video")) {
                     userVideoGenres.add(playedGenre);
                 }
@@ -1343,8 +1306,6 @@ public class UserService {
         System.out.println("topSongs size: " + topSongs.size());
 
         topSongs.addAll(musicToSendBack);
-
-        //TODO Se så att den fortfarande hittar låtar, även om du lyssnat på alla genres
 
         List<Music> sortedTopSongs = sortAllMusicByPlays(topSongs);
 

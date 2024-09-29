@@ -4,7 +4,9 @@ import UserService.userService.repositories.MusicRepository;
 import UserService.userService.vo.Genre;
 import UserService.userService.vo.Music;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +32,11 @@ public class MusicService {
     public Music findMusicByUrl(String url) {
         Optional<Music> optionalMusic = musicRepository.findByUrlIgnoreCase(url);
 
-        return optionalMusic.orElse(null);
+        if (optionalMusic.isPresent()) {
+            return optionalMusic.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: Could not be found");
+        }
     }
 
     public List<Music> findAllMusicInGenre(Genre genre) {

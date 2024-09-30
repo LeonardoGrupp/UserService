@@ -870,15 +870,50 @@ public class UserService {
 
         if (type.equalsIgnoreCase("music")) {
 
-            List<PlayedGenre> userMusicGenres = new ArrayList<>();
+            // TODO HÄR VAR FELET - TA BORT I DE ANDRA
+            // Get liked genres
+            // TODO nytt
+            List<PlayedGenre> likedUserMusicGenres = new ArrayList<>();
             for (PlayedGenre playedGenre : usersGenres) {
-                if (playedGenre.getType().equalsIgnoreCase("music")) {
-                    userMusicGenres.add(playedGenre);
+                if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isLiked()) {
+                    System.out.println(playedGenre.getGenre() + " is LIKED and was added");
+                    likedUserMusicGenres.add(playedGenre);
                 }
             }
+            // TODO --Nytt
 
+            // if liked genres is empty
 
-            List<PlayedGenre> sortedFullGenreList = userMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+            List<PlayedGenre> userMusicGenres = new ArrayList<>();
+            //todo NYTT
+            if (likedUserMusicGenres.isEmpty()) {
+                System.out.println("the liked list was EMPTY adding ALL music genres");
+                //todo --Nytt
+
+                for (PlayedGenre playedGenre : usersGenres) {
+                    if (playedGenre.getType().equalsIgnoreCase("music") && !playedGenre.isDisliked()) {
+                        userMusicGenres.add(playedGenre);
+                    }
+                }
+                // todo Nytt
+            }
+            // todo --Nytt
+
+            List<PlayedGenre> sortedFullGenreList = new ArrayList<>();
+
+            //todo Nytt
+            if (!likedUserMusicGenres.isEmpty()) {
+                System.out.println("liked genres is NOT empty");
+                sortedFullGenreList = likedUserMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+            }
+            if (likedUserMusicGenres.isEmpty()) {
+                System.out.println("liked genres IS empty");
+                // todo --nytt
+                sortedFullGenreList = userMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
+                // todo nytt
+            }
+            // todo --nytt
+
 
 
             if (sortedFullGenreList.size() >= 3) {
@@ -947,13 +982,41 @@ public class UserService {
 
         if (type.equals("music")) {
             System.out.println("type was music");
+
+            // todo NEW
             for (PlayedGenre playedGenre : usersGenres) {
-                if (playedGenre.getType().equals("music")) {
-                    System.out.println("adding playedGenre: " + playedGenre.getGenre());
+                if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isLiked()) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }
-            System.out.println("all music genres added.");
+            // todo --NEW
+
+            // todo NEW
+            if (userGenresToSendBack.isEmpty()) {
+                System.out.println("is empty");
+                // todo --NEW
+                for (PlayedGenre playedGenre : usersGenres) {
+                    if (playedGenre.getType().equals("music") && !playedGenre.isDisliked()) {
+                        System.out.println("adding playedGenre: " + playedGenre.getGenre());
+                        userGenresToSendBack.add(playedGenre);
+                    }
+                }
+                System.out.println("all music genres added.");
+                //todo NEW
+            }
+            // todo --NEW
+
+            //todo NEW check for dislikedGenres
+            if (!userGenresToSendBack.isEmpty()) {
+                System.out.println("checking if anything is disliked");
+                for (PlayedGenre playedGenre : usersGenres) {
+                    if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isDisliked()) {
+                        System.out.println(playedGenre.getGenre() + " WAS DISLIKED ***** REMOVING");
+                        userGenresToSendBack.remove(playedGenre);
+                    }
+                }
+            }
+
         }
         if (type.equals("pod")) {
             System.out.println("type was pod");
@@ -1222,7 +1285,10 @@ public class UserService {
     public List<Music> totalTop10Songs(User user) {
         System.out.println("in top 10 songs");
         // Sort users PlayerGenres by most played
+
         List<PlayedGenre> sortedPlayedGenres = sortAllPlayedGenresByPlays(user, "music");
+
+        System.out.println("ENBART FÖR UTSKRIFT - KAN TA BORT DETTA:");
         System.out.println("");
         System.out.println("Users all played genres - sorted:");
         for (PlayedGenre playedGenre : sortedPlayedGenres) {

@@ -972,6 +972,30 @@ class UserServiceTest {
     }
 
     @Test
+    void getUsersMostPlayedGenresMoreThanThreeWithLikedGenreMusicSortedByPlays() {
+        User user = new User("freddan");
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        PlayedGenre hiphop = new PlayedGenre("hiphop", "music");
+        PlayedGenre pop = new PlayedGenre("pop", "music");
+        rock.setTotalPlays(20);
+        jazz.setTotalPlays(10);
+        hiphop.setTotalPlays(5);
+        pop.setTotalPlays(8);
+        pop.likeGenre();
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz, hiphop, pop);
+
+        user.setPlayedGenre(playedGenreList);
+
+        List<PlayedGenre> response = userService.getUsersMostPlayedGenresSortedByPlays(user, "music");
+
+        assertEquals(1, response.size(), "ERROR: It's not top 3");
+        assertEquals("pop", response.get(0).getGenre(), "ERROR: Pop was not the third most played genre");
+    }
+
+    @Test
     void getUsersMostPlayedGenresLessThanThreePodSortedByPlays() {
         User user = new User("freddan");
 
@@ -1285,12 +1309,110 @@ class UserServiceTest {
         assertEquals("rock", response.get(0).getGenre(), "ERROR: Rock was not the first converted genre in the list");
     }
 
+    // TODO
     @Test
-    void totalTop10Videos() {
+    void totalTop10VideosAllVideosOver10ShouldReturnList() {
+        User user = new User("freddan");
+
+        PlayedMedia playedMedia = new PlayedMedia("video", "title", "url", "release");
+        playedMedia.setTimesPlayed(1);
+        List<PlayedMedia> usersPlayedVideos = Arrays.asList(playedMedia);
+        user.setPlayedMedia(usersPlayedVideos);
+
+        Video video1 = new Video("video", "title", "url", "release");
+        Video video2 = new Video("video", "title2", "url2", "release2");
+        Video video3 = new Video("video", "title3", "url3", "release3");
+        Video video4 = new Video("video", "title4", "url4", "release4");
+        Video video5 = new Video("video", "title5", "url5", "release5");
+        Video video6 = new Video("video", "title6", "url6", "release6");
+        Video video7 = new Video("video", "title7", "url7", "release7");
+        Video video8 = new Video("video", "title8", "url8", "release8");
+        Video video9 = new Video("video", "title9", "url9", "release9");
+        Video video10 = new Video("video", "title10", "url10", "release10");
+        Video video11 = new Video("video", "title11", "url11", "release11");
+
+        video8.setPlayCounter(30);
+        video1.setPlayCounter(20);
+        video2.setPlayCounter(15);
+        video3.setPlayCounter(10);
+        video4.setPlayCounter(9);
+        video5.setPlayCounter(8);
+        video6.setPlayCounter(7);
+        video7.setPlayCounter(6);
+        video9.setPlayCounter(5);
+        video10.setPlayCounter(4);
+        video11.setPlayCounter(3);
+
+        List<Video> allVideos = new ArrayList<>(Arrays.asList(video1, video2, video3, video4, video5, video6, video7, video8, video9, video10, video11));
+
+        when(videoServiceMock.findAllVideos()).thenReturn(allVideos);
+
+        List<Video> response = userService.totalTop10Videos(user);
+
+        assertEquals(30, response.get(0).getPlayCounter(), "ERROR: Video 8 was not in the top");
+        assertEquals(10, response.size(), "ERROR: Size was not 8");
     }
 
     @Test
-    void totalTop10Pods() {
+    void totalTop10VideosAllVideosOver1ButLessThan10ShouldReturnList() {
+
+    }
+
+    @Test
+    void totalTop10VideosAllVideosIsEmptyShouldReturnList() {
+    }
+
+    @Test
+    void totalTop10PodsAllPodsOver10ShouldReturnList() {
+        User user = new User("freddan");
+
+        PlayedMedia playedMedia = new PlayedMedia("pod", "title", "url", "release");
+        playedMedia.setTimesPlayed(1);
+        List<PlayedMedia> usersPlayedVideos = Arrays.asList(playedMedia);
+        user.setPlayedMedia(usersPlayedVideos);
+
+        Pod pod1 = new Pod("pod", "title", "url", "release");
+        Pod pod2 = new Pod("pod", "title2", "url2", "release2");
+        Pod pod3 = new Pod("pod", "title3", "url3", "release3");
+        Pod pod4 = new Pod("pod", "title4", "url4", "release4");
+        Pod pod5 = new Pod("pod", "title5", "url5", "release5");
+        Pod pod6 = new Pod("pod", "title6", "url6", "release6");
+        Pod pod7 = new Pod("pod", "title7", "url7", "release7");
+        Pod pod8 = new Pod("pod", "title8", "url8", "release8");
+        Pod pod9 = new Pod("pod", "title9", "url9", "release9");
+        Pod pod10 = new Pod("pod", "title10", "url10", "release10");
+        Pod pod11 = new Pod("pod", "title11", "url11", "release11");
+
+        pod8.setPlayCounter(30);
+        pod1.setPlayCounter(20);
+        pod2.setPlayCounter(15);
+        pod3.setPlayCounter(10);
+        pod4.setPlayCounter(9);
+        pod5.setPlayCounter(8);
+        pod6.setPlayCounter(7);
+        pod7.setPlayCounter(6);
+        pod9.setPlayCounter(5);
+        pod10.setPlayCounter(4);
+        pod11.setPlayCounter(3);
+
+        List<Pod> allPods = new ArrayList<>(Arrays.asList(pod1, pod2, pod3, pod4, pod5, pod6, pod7, pod8, pod9, pod10, pod11));
+
+        when(podServiceMock.findAllPods()).thenReturn(allPods);
+
+        List<Pod> response = userService.totalTop10Pods(user);
+
+        assertEquals(30, response.get(0).getPlayCounter(), "ERROR: Pod 8 was not in the top");
+        assertEquals(10, response.size(), "ERROR: Size was not 8");
+    }
+
+    @Test
+    void totalTop10PodsAllPodsOver1ButLessThan10ShouldReturnList() {
+
+    }
+
+    @Test
+    void totalTop10PodsAllPodsIsEmptyShouldReturnList() {
+
     }
 
     @Test

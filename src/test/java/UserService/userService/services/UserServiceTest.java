@@ -460,55 +460,354 @@ class UserServiceTest {
     }
 
     @Test
-    void resetLikesAndDisLikesOfMedia() {
+    void resetLikesAndDisLikesOfMediaShouldReturnPlayedMedia() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+
+        playedMedia.disLikeMedia();
+
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        PlayedMedia response = userService.resetLikesAndDisLikesOfMedia(id, url);
+
+        assertFalse(response.isDisliked(), "ERROR: was True");
+        assertFalse(response.isLiked(), "ERROR: was True");
     }
 
     @Test
-    void resetLikesAndDisLikesOfGenre() {
+    void resetLikesAndDisLikesOfMediaWithoutPlayingItFirstShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.resetLikesAndDisLikesOfMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: In order to reset likes/dislikes media you first need to play it", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
-    void findMusicByUrl() {
+    void resetLikesAndDisLikesOfMediaThatIsAlreadyFalseShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.resetLikesAndDisLikesOfMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: Media is already false on both like and dislike", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
-    void isMusic() {
+    void resetLikesAndDisLikesOfGenreShouldReturnPlayedGenre() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+
+        String type = "music";
+
+        PlayedGenre rock = new PlayedGenre("rock", type);
+        PlayedGenre jazz = new PlayedGenre("jazz", type);
+
+        rock.disLikeGenre();
+
+        List<PlayedGenre> genreList = Arrays.asList(rock, jazz);
+        user.setPlayedGenre(genreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        PlayedGenre response = userService.resetLikesAndDisLikesOfGenre(id, "rock");
+
+        assertFalse(response.isDisliked(), "ERROR: was True");
+        assertFalse(response.isLiked(), "ERROR: was True");
     }
 
     @Test
-    void isPod() {
+    void resetLikesAndDisLikesOfGenreWhenFalseShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+
+        String type = "music";
+
+        PlayedGenre rock = new PlayedGenre("rock", type);
+        PlayedGenre jazz = new PlayedGenre("jazz", type);
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz);
+        user.setPlayedGenre(playedGenreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.resetLikesAndDisLikesOfGenre(id, "rock");
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: Genre is already false on both like and dislike", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
-    void isVideo() {
+    void findMusicByUrlShouldReturnMusic() {
+        Music music = new Music("music", "title", "url", "release");
+
+        when(musicServiceMock.findMusicByUrl("url")).thenReturn(music);
+
+        Music response = userService.findMusicByUrl("url");
+
+        assertEquals("title", response.getTitle(), "ERROR: Titles was not identical");
+
+        verify(musicServiceMock).findMusicByUrl("url");
     }
 
     @Test
-    void hasPlayedMediaBefore() {
+    void isMusicShouldReturnTrue() {
+        when(musicServiceMock.musicExistsByUrl("url")).thenReturn(true);
+
+        boolean isTrue = userService.isMusic("url");
+
+        assertTrue(isTrue, "ERROR: was False");
+
+        verify(musicServiceMock).musicExistsByUrl("url");
     }
 
     @Test
-    void hasPlayedMusicGenreBefore() {
+    void isMusicShouldReturnFalse() {
+        when(musicServiceMock.musicExistsByUrl("url")).thenReturn(false);
+
+        boolean isFalse = userService.isMusic("url");
+
+        assertFalse(isFalse, "ERROR: was True");
+
+        verify(musicServiceMock).musicExistsByUrl("url");
     }
 
     @Test
-    void hasPlayedPodGenreBefore() {
+    void isPodShouldReturnTrue() {
+        when(podServiceMock.podExistsByUrl("url")).thenReturn(true);
+
+        boolean isTrue = userService.isPod("url");
+
+        assertTrue(isTrue, "ERROR: was False");
+
+        verify(podServiceMock).podExistsByUrl("url");
     }
 
     @Test
-    void hasPlayedVideoGenreBefore() {
+    void isPodShouldReturnFalse() {
+        when(podServiceMock.podExistsByUrl("url")).thenReturn(false);
+
+        boolean isFalse = userService.isPod("url");
+
+        assertFalse(isFalse, "ERROR: was True");
+
+        verify(podServiceMock).podExistsByUrl("url");
     }
 
     @Test
-    void getUsersPlayedMediaList() {
+    void isVideoShouldReturnTrue() {
+        when(videoServiceMock.videoExistsByUrl("url")).thenReturn(true);
+
+        boolean isTrue = userService.isVideo("url");
+
+        assertTrue(isTrue, "ERROR: was False");
+
+        verify(videoServiceMock).videoExistsByUrl("url");
     }
 
     @Test
-    void getUsersPlayedGenreList() {
+    void isVideoShouldReturnFalse() {
+        when(videoServiceMock.videoExistsByUrl("url")).thenReturn(false);
+
+        boolean isFalse = userService.isVideo("url");
+
+        assertFalse(isFalse, "ERROR: was True");
+
+        verify(videoServiceMock).videoExistsByUrl("url");
     }
 
     @Test
-    void getMediaFromUsersMediaList() {
+    void hasPlayedMediaBeforeShouldReturnTrue() {
+        User user = new User("freddan");
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        List<PlayedMedia> playedMediaList = Arrays.asList(playedMedia);
+        user.setPlayedMedia(playedMediaList);
+
+        boolean isTrue = userService.hasPlayedMediaBefore(user, url);
+
+        assertTrue(isTrue, "ERROR: was False");
+    }
+
+    @Test
+    void hasPlayedMediaBeforeShouldReturnFalse() {
+        User user = new User("freddan");
+
+        String url = "doest not exist";
+
+        boolean isFalse = userService.hasPlayedMediaBefore(user, url);
+
+        assertFalse(isFalse, "ERROR: was True");
+    }
+
+    @Test
+    void hasPlayedMusicGenreBeforeShouldReturnTrue() {
+        User user = new User("freddan");
+
+        PlayedGenre playedGenre = new PlayedGenre("rock", "music");
+        List<PlayedGenre> playedGenreList = Arrays.asList(playedGenre);
+        user.setPlayedGenre(playedGenreList);
+
+        Genre genre = new Genre("rock", "music");
+
+        boolean isTrue = userService.hasPlayedMusicGenreBefore(user, genre);
+
+        assertTrue(isTrue, "ERROR: was False");
+    }
+
+    @Test
+    void hasPlayedMusicGenreBeforeShouldReturnFalse() {
+        User user = new User("freddan");
+
+        Genre genre = new Genre("rock", "music");
+
+        boolean isFalse = userService.hasPlayedMusicGenreBefore(user, genre);
+
+        assertFalse(isFalse, "ERROR: was True");
+    }
+
+    @Test
+    void hasPlayedPodGenreBeforeShouldReturnTrue() {
+        User user = new User("freddan");
+
+        PlayedGenre playedGenre = new PlayedGenre("business", "pod");
+        List<PlayedGenre> playedGenreList = Arrays.asList(playedGenre);
+        user.setPlayedGenre(playedGenreList);
+
+        Genre genre = new Genre("business", "pod");
+
+        boolean isTrue = userService.hasPlayedPodGenreBefore(user, genre);
+
+        assertTrue(isTrue, "ERROR: was False");
+    }
+
+    @Test
+    void hasPlayedPodGenreBeforeShouldReturnFalse() {
+        User user = new User("freddan");
+
+        Genre genre = new Genre("business", "pod");
+
+        boolean isFalse = userService.hasPlayedPodGenreBefore(user, genre);
+
+        assertFalse(isFalse, "ERROR: was True");
+    }
+
+    @Test
+    void hasPlayedVideoGenreBeforeShouldReturnTrue() {
+        User user = new User("freddan");
+
+        PlayedGenre playedGenre = new PlayedGenre("action", "video");
+        List<PlayedGenre> playedGenreList = Arrays.asList(playedGenre);
+        user.setPlayedGenre(playedGenreList);
+
+        Genre genre = new Genre("action", "video");
+
+        boolean isTrue = userService.hasPlayedVideoGenreBefore(user, genre);
+
+        assertTrue(isTrue, "ERROR: was False");
+    }
+
+    @Test
+    void hasPlayedVideoGenreBeforeShouldReturnFalse() {
+        User user = new User("freddan");
+
+        Genre genre = new Genre("action", "video");
+
+        boolean isFalse = userService.hasPlayedVideoGenreBefore(user, genre);
+
+        assertFalse(isFalse, "ERROR: was True");
+    }
+
+    @Test
+    void getUsersPlayedMediaListShouldReturnList() {
+        User user = new User("freddan");
+
+        List<PlayedMedia> playedMediaList = Arrays.asList(new PlayedMedia("music", "title", "url", "release"));
+        user.setPlayedMedia(playedMediaList);
+
+        List<PlayedMedia> response = userService.getUsersPlayedMediaList(user);
+
+        assertEquals(playedMediaList, response, "ERROR: Lists was not identical");
+    }
+
+    @Test
+    void getUsersPlayedGenreListShouldReturnList() {
+        User user = new User("freddan");
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(new PlayedGenre("rock", "music"));
+        user.setPlayedGenre(playedGenreList);
+
+        List<PlayedGenre> response = userService.getUsersPlayedGenreList(user);
+
+        assertEquals(playedGenreList, response, "ERROR: Lists was not identical");
+    }
+
+    @Test
+    void getMediaFromUsersMediaListShouldReturnPlayedMedia() {
+        User user = new User("freddan");
+
+        String url = "url";
+
+        List<PlayedMedia> playedMediaList = Arrays.asList(new PlayedMedia("music", "title", url, "release"));
+        user.setPlayedMedia(playedMediaList);
+
+        PlayedMedia response = userService.getMediaFromUsersMediaList(user, url);
+
+        assertEquals("title", response.getTitle(), "ERROR: Titles was not identical");
+    }
+
+    @Test
+    void getMediaFromUsersMediaListShouldReturnException() {
+        User user = new User("freddan");
+
+        String url = "non existing";
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.getMediaFromUsersMediaList(user, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: not found", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
@@ -551,15 +850,81 @@ class UserServiceTest {
     }
 
     @Test
-    void videoRecommendations() {
+    void videoRecommendationsShouldReturnList() {
+        User user = new User("freddan");
+        long id = 1;
+        user.setId(id);
+
+        List<Video> videoList = Arrays.asList(
+                new Video("video", "title", "url", "release"),
+                new Video("video", "title2", "url2", "release2"),
+                new Video("video", "title3", "url3", "release3")
+        );
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        UserService userServiceSpy = spy(userService);
+
+        doReturn(videoList).when(userServiceSpy).totalTop10Videos(user);
+
+        List<Video> response = userServiceSpy.videoRecommendations(id);
+
+        assertEquals(videoList, response, "ERROR: Lists was not identical");
+
+        verify(userRepositoryMock).findById(id);
+        verify(userServiceSpy).totalTop10Videos(user);
     }
 
     @Test
     void podRecommendations() {
+        User user = new User("freddan");
+        long id = 1;
+        user.setId(id);
+
+        List<Pod> podList = Arrays.asList(
+                new Pod("pod", "title", "url", "release"),
+                new Pod("pod", "title2", "url2", "release2"),
+                new Pod("pod", "title3", "url3", "release3")
+        );
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        UserService userServiceSpy = spy(userService);
+
+        doReturn(podList).when(userServiceSpy).totalTop10Pods(user);
+
+        List<Pod> response = userServiceSpy.podRecommendations(id);
+
+        assertEquals(podList, response, "ERROR: Lists was not identical");
+
+        verify(userRepositoryMock).findById(id);
+        verify(userServiceSpy).podRecommendations(id);
     }
 
     @Test
     void musicRecommendations() {
+        User user = new User("freddan");
+        long id = 1;
+        user.setId(id);
+
+        List<Music> musicList = Arrays.asList(
+                new Music("music", "title", "url", "release"),
+                new Music("music", "title2", "url2", "release2"),
+                new Music("music", "title3", "url3", "release3")
+        );
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        UserService userServiceSpy = spy(userService);
+
+        doReturn(musicList).when(userServiceSpy).totalTop10Songs(user);
+
+        List<Music> response = userServiceSpy.musicRecommendations(id);
+
+        assertEquals(musicList, response, "ERROR: Lists was not identical");
+
+        verify(userRepositoryMock).findById(id);
+        verify(userServiceSpy).totalTop10Songs(user);
     }
 
     @Test

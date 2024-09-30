@@ -15,17 +15,17 @@ public class User {
     private String username;
 
     @OneToMany
-    private List<PlayedGenre> playedGenre;
+    private List<PlayedGenre> playedGenre = new ArrayList<>();
     @OneToMany
-    private List<PlayedGenre> likedGenre;
+    private List<PlayedGenre> likedGenre = new ArrayList<>();
     @OneToMany
-    private List<PlayedGenre> disLikedGenre;
+    private List<PlayedGenre> disLikedGenre = new ArrayList<>();
     @OneToMany
-    private List<PlayedMedia> likedMedia;
+    private List<PlayedMedia> likedMedia = new ArrayList<>();
     @OneToMany
-    private List<PlayedMedia> disLikedMedia;
+    private List<PlayedMedia> disLikedMedia = new ArrayList<>();
     @OneToMany
-    private List<PlayedMedia> playedMedia;
+    private List<PlayedMedia> playedMedia = new ArrayList<>();
 
     public User() {
     }

@@ -469,40 +469,25 @@ public class UserService {
     }
 
     public PlayedMedia likeMedia(long id, String url) {
-        // Get User
         User user = findUserById(id);
-        System.out.println("finding user");
-
-
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
 
         if (!hasPlayedMediaBefore(user, url)) {
-            System.out.println("ERROR: In order to like the media, you first have to play it");
-            return null;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ERROR: In order to like media you first need to play it");
 
         } else {
 
             List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
 
-            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
-                System.out.println("ERROR: Users playedMedia was empty");
-                return null;
-            }
-
             for (PlayedMedia playedMedia : usersPlayedMedia) {
                 if (playedMedia.getUrl().equals(url)) {
                     if (playedMedia.isLiked() && user.getLikedMedia().contains(playedMedia)) {
-                        System.out.println("Media already liked - doing nothing");
-                        return playedMedia;
+                        throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: media already liked");
+
                     } else {
 
                         playedMedia.likeMedia();
 
                         playedMediaService.save(playedMedia);
-
-                        System.out.println("media has been liked");
 
                         user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
 
@@ -513,7 +498,8 @@ public class UserService {
 
                 }
             }
-            System.out.println("ERROR: kept going even though it shouldnt have");
+
+            // Will never reach this due to boolean
             return null;
         }
     }
@@ -521,66 +507,44 @@ public class UserService {
     public PlayedGenre likeGenre(long id, String genreName) {
         User user = findUserById(id);
 
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
-
         for (PlayedGenre playedGenre : user.getPlayedGenre()) {
-            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
-                System.out.println("Liking played genre: " + genreName);
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName) && !playedGenre.isLiked()) {
+
                 playedGenre.likeGenre();
 
-                System.out.println("Saving played genre");
                 playedGenreService.save(playedGenre);
 
-                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
                 user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
 
-                System.out.println("saving user");
                 userRepository.save(user);
 
-                System.out.println("returning played genre");
                 return playedGenre;
+            } else if (playedGenre.getGenre().equalsIgnoreCase(genreName) && playedGenre.isLiked()) {
+                throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: Already liked genre");
             }
         }
-        System.out.println("ERROR: kept going even though it shouldnt have");
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: not found");
     }
 
     public PlayedMedia disLikeMedia(long id, String url) {
         // Get User
         User user = findUserById(id);
-        System.out.println("finding user");
-
-
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
 
         if (!hasPlayedMediaBefore(user, url)) {
-            System.out.println("ERROR: In order to dislike the media, you first have to play it");
-            return null;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ERROR: In order to dislike media you first need to play it");
 
         } else {
 
             List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
 
-            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
-                System.out.println("ERROR: Users playedMedia was empty");
-                return null;
-            }
-
             for (PlayedMedia playedMedia : usersPlayedMedia) {
                 if (playedMedia.getUrl().equals(url)) {
                     if (playedMedia.isDisliked() && user.getDisLikedMedia().contains(playedMedia)) {
-                        System.out.println("Media already disliked - doing nothing");
-                        return playedMedia;
+                        throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: media already disliked");
                     } else {
                         playedMedia.disLikeMedia();
 
                         playedMediaService.save(playedMedia);
-
-                        System.out.println("media has been disliked");
 
                         user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
 
@@ -590,7 +554,8 @@ public class UserService {
                     }
                 }
             }
-            System.out.println("ERROR: kept going even though it shouldnt have");
+
+            // will never reach this due to boolean
             return null;
         }
     }
@@ -598,30 +563,24 @@ public class UserService {
     public PlayedGenre disLikeGenre(long id, String genreName) {
         User user = findUserById(id);
 
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
-
         for (PlayedGenre playedGenre : user.getPlayedGenre()) {
-            if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
-                System.out.println("Disliking played genre: " + genreName);
+            if (playedGenre.getGenre().equalsIgnoreCase(genreName) && !playedGenre.isDisliked()) {
+
                 playedGenre.disLikeGenre();
 
-                System.out.println("Saving played genre");
                 playedGenreService.save(playedGenre);
 
-                System.out.println("user.removeOrAddGenreFromDislikedandLikedGenre");
                 user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
 
-                System.out.println("saving user");
                 userRepository.save(user);
 
-                System.out.println("returning played genre");
                 return playedGenre;
+
+            } else if (playedGenre.getGenre().equalsIgnoreCase(genreName) && playedGenre.isDisliked()) {
+                throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: Already disliked genre");
             }
         }
-        System.out.println("ERROR: kept going even though it shouldnt have");
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: not found");
     }
 
     public PlayedMedia resetLikesAndDisLikesOfMedia(long id, String url) {
@@ -1021,7 +980,7 @@ public class UserService {
         if (type.equals("pod")) {
             System.out.println("type was pod");
             for (PlayedGenre playedGenre : usersGenres) {
-                if (playedGenre.getType().equals("pod")) {
+                if (playedGenre.getType().equalsIgnoreCase("pod")) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }
@@ -1030,7 +989,7 @@ public class UserService {
         if (type.equals("video")) {
             System.out.println("type was video");
             for (PlayedGenre playedGenre : usersGenres) {
-                if (playedGenre.getType().equals("video")) {
+                if (playedGenre.getType().equalsIgnoreCase("video")) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }

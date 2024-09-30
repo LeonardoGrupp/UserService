@@ -586,31 +586,19 @@ public class UserService {
     public PlayedMedia resetLikesAndDisLikesOfMedia(long id, String url) {
         // Get User
         User user = findUserById(id);
-        System.out.println("finding user");
-
-
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
 
         if (!hasPlayedMediaBefore(user, url)) {
-            System.out.println("ERROR: In order to reset likes and dislike of the media, you first have to play it");
-            return null;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ERROR: In order to reset likes/dislikes media you first need to play it");
 
         } else {
 
             List<PlayedMedia> usersPlayedMedia = user.getPlayedMedia();
 
-            if (usersPlayedMedia == null || usersPlayedMedia.isEmpty()) {
-                System.out.println("ERROR: Users playedMedia was empty");
-                return null;
-            }
-
             for (PlayedMedia playedMedia : usersPlayedMedia) {
-                if (playedMedia.getUrl().equals(url)) {
+                if (playedMedia.getUrl().equalsIgnoreCase(url)) {
                     if (!playedMedia.isLiked() && !playedMedia.isDisliked()) {
-                        System.out.println("Media is already false on both like and dislike - doing nothing");
-                        return playedMedia;
+                        throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: Media is already false on both like and dislike");
+
                     } else {
                         playedMedia.resetLikeAndDisLikeMedia();
 
@@ -625,7 +613,8 @@ public class UserService {
                     }
                 }
             }
-            System.out.println("ERROR: kept going even though it shouldnt have");
+
+            // will never reach this due to boolean
             return null;
         }
     }
@@ -633,15 +622,11 @@ public class UserService {
     public PlayedGenre resetLikesAndDisLikesOfGenre(long id, String genreName) {
         User user = findUserById(id);
 
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: User not found with ID: " + id);
-        }
-
         for (PlayedGenre playedGenre : user.getPlayedGenre()) {
             if (playedGenre.getGenre().equalsIgnoreCase(genreName)) {
                 if (!playedGenre.isLiked() && !playedGenre.isDisliked()) {
-                    System.out.println("Genre is already false on both like and dislike - doing nothing");
-                    return playedGenre;
+                    throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "ERROR: Genre is already false on both like and dislike");
+
                 } else {
                     playedGenre.resetLikeAndDisLikeGenre();
 
@@ -656,18 +641,13 @@ public class UserService {
                 }
             }
         }
-        System.out.println("ERROR: kept going even though it shouldnt have");
+
+        // will never reach this due to boolean
         return null;
     }
 
     public Music findMusicByUrl(String url) {
         Music music = getMusicByUrl(url);
-
-        System.out.println("Testing to see all genres within music");
-        System.out.println("");
-        for (Genre genre : music.getGenres()) {
-            System.out.println("Genre " + genre.getGenre());
-        }
 
         return music;
     }
@@ -677,10 +657,8 @@ public class UserService {
         boolean exists = musicService.musicExistsByUrl(url);
 
         if (exists) {
-            System.out.println("url is music");
             return true;
         } else {
-            System.out.println("url was not music");
             return false;
         }
     }
@@ -733,7 +711,6 @@ public class UserService {
             }
         }
 
-
         return false;
     }
 
@@ -780,7 +757,7 @@ public class UserService {
             }
         }
 
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ERROR: not found");
     }
 
     public Music getMusicByUrl(String url) {

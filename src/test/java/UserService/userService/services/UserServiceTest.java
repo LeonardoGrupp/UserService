@@ -1,6 +1,7 @@
 package UserService.userService.services;
 
 import UserService.userService.entites.PlayedGenre;
+import UserService.userService.entites.PlayedMedia;
 import UserService.userService.entites.User;
 import UserService.userService.repositories.UserRepository;
 import UserService.userService.vo.Genre;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -202,19 +204,259 @@ class UserServiceTest {
     }
 
     @Test
-    void likeMedia() {
+    void likeMediaShouldReturnPlayedMedia() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        PlayedMedia response = userService.likeMedia(id, url);
+
+        assertTrue(response.isLiked(), "ERROR: was False");
     }
 
     @Test
-    void likeGenre() {
+    void likeMediaWithoutPlayingItFirstShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.likeMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: In order to like media you first need to play it", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
-    void disLikeMedia() {
+    void likeMediaThatIsAlreadyLikedShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+
+        playedMedia.likeMedia();
+
+        List<PlayedMedia> likedList = Arrays.asList(playedMedia);
+        user.setLikedMedia(likedList);
+
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.likeMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: media already liked", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
-    void disLikeGenre() {
+    void likeGenreShouldReturnPlayedGenre() {
+        User user = new User("freddan");
+        long id = 1;
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz);
+
+        user.setPlayedGenre(playedGenreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+        when(userRepositoryMock.save(user)).thenReturn(user);
+        when(playedGenreServiceMock.save(rock)).thenReturn(rock);
+
+        PlayedGenre response = userService.likeGenre(id, "rock");
+
+        assertTrue(response.isLiked(), "ERROR: was not Liked");
+    }
+
+    @Test
+    void likeGenreWhenGenreIsAlreadyLikedShouldReturnException() {
+        User user = new User("freddan");
+        long id = 1;
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+
+        rock.likeGenre();
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz);
+
+        user.setPlayedGenre(playedGenreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.likeGenre(id, "rock");
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: Already liked genre", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
+    }
+
+    @Test
+    void likeGenreWhenGenreNotFoundShouldReturnException() {
+        User user = new User("freddan");
+        long id = 1;
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.likeGenre(id, "rock");
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: not found", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "ERROR: Status Codes was not identical");
+    }
+
+    @Test
+    void disLikeMediaShouldReturnPlayedMedia() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        PlayedMedia response = userService.disLikeMedia(id, url);
+
+        assertTrue(response.isDisliked(), "ERROR: was False");
+    }
+
+    @Test
+    void dislikeMediaWithoutPlayingItFirstShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+        userRepositoryMock.save(user);
+
+        String url = "url";
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.disLikeMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: In order to dislike media you first need to play it", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), "ERROR: Status Codes was not identical");
+    }
+
+    @Test
+    void dislikeMediaThatIsAlreadyLikedShouldReturnException() {
+        long id = 1;
+        User user = new User("freddan");
+        user.setId(id);
+
+        String url = "url";
+
+        PlayedMedia playedMedia = new PlayedMedia("music", "title", url, "release");
+        PlayedMedia playedMedia2 = new PlayedMedia("music", "title", "url2", "release");
+
+        playedMedia.disLikeMedia();
+
+        List<PlayedMedia> dislikedList = Arrays.asList(playedMedia);
+        user.setDisLikedMedia(dislikedList);
+
+        List<PlayedMedia> mediaList = Arrays.asList(playedMedia, playedMedia2);
+        user.setPlayedMedia(mediaList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.disLikeMedia(id, url);
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: media already disliked", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
+    }
+
+    @Test
+    void dislikeGenreShouldReturnPlayedGenre() {
+        User user = new User("freddan");
+        long id = 1;
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz);
+
+        user.setPlayedGenre(playedGenreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+        when(userRepositoryMock.save(user)).thenReturn(user);
+        when(playedGenreServiceMock.save(rock)).thenReturn(rock);
+
+        PlayedGenre response = userService.disLikeGenre(id, "rock");
+
+        assertTrue(response.isDisliked(), "ERROR: was not disliked");
+    }
+
+    @Test
+    void dislikeGenreWhenGenreIsAlreadyLikedShouldReturnException() {
+        User user = new User("freddan");
+        long id = 1;
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+
+        rock.disLikeGenre();
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz);
+
+        user.setPlayedGenre(playedGenreList);
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.disLikeGenre(id, "rock");
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: Already disliked genre", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.ALREADY_REPORTED, response.getStatusCode(), "ERROR: Status Codes was not identical");
+    }
+
+    @Test
+    void dislikeGenreWhenGenreNotFoundShouldReturnException() {
+        User user = new User("freddan");
+        long id = 1;
+
+        when(userRepositoryMock.findById(id)).thenReturn(Optional.of(user));
+
+        ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> {
+            userService.disLikeGenre(id, "rock");
+        }, "ERROR: Exception was not thrown");
+
+        assertEquals("ERROR: not found", response.getReason(), "ERROR: Exceptions was not identical");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "ERROR: Status Codes was not identical");
     }
 
     @Test
@@ -479,6 +721,55 @@ class UserServiceTest {
     }
 
     @Test
+    void sortAllPlayedGenresWithLikedGenreByPlaysMusicShouldReturnSortedList() {
+        User user = new User("freddan");
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        PlayedGenre hiphop = new PlayedGenre("hiphop", "music");
+        PlayedGenre pop = new PlayedGenre("pop", "music");
+
+        rock.setTotalPlays(12);
+        jazz.setTotalPlays(90);
+        hiphop.setTotalPlays(15);
+        pop.setTotalPlays(60);
+        pop.likeGenre();
+
+        List<PlayedGenre> list = Arrays.asList(rock, jazz, hiphop, pop);
+
+        user.setPlayedGenre(list);
+
+        List<PlayedGenre> response = userService.sortAllPlayedGenresByPlays(user, "music");
+
+        assertEquals("pop", response.get(0).getGenre(), "ERROR: Pop was not a liked played genre");
+    }
+
+    @Test
+    void sortAllPlayedGenresWithDislikedGenreByPlaysMusicShouldReturnSortedList() {
+        User user = new User("freddan");
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        PlayedGenre hiphop = new PlayedGenre("hiphop", "music");
+        PlayedGenre pop = new PlayedGenre("pop", "music");
+
+        rock.setTotalPlays(12);
+        jazz.setTotalPlays(90);
+        hiphop.setTotalPlays(15);
+        pop.setTotalPlays(60);
+        jazz.disLikeGenre();
+
+        List<PlayedGenre> list = Arrays.asList(rock, jazz, hiphop, pop);
+
+        user.setPlayedGenre(list);
+
+        List<PlayedGenre> response = userService.sortAllPlayedGenresByPlays(user, "music");
+
+        assertEquals("pop", response.get(0).getGenre(), "ERROR: Pop was not a liked played genre");
+        assertEquals(3, response.size(), "ERROR: Size was not 3");
+    }
+
+    @Test
     void sortAllPlayedGenresByPlaysPodShouldReturnSortedList() {
         User user = new User("freddan");
 
@@ -557,18 +848,76 @@ class UserServiceTest {
 
     @Test
     void sortAllMusicByPlays() {
+        Music music = new Music("music", "title", "url", "release");
+        Music music2 = new Music("music", "title2", "url2", "release2");
+        Music music3 = new Music("music", "title3", "url3", "release3");
+        music.setPlayCounter(4);
+        music2.setPlayCounter(5);
+        music3.setPlayCounter(6);
+
+        List<Music> musicList = Arrays.asList(music, music2, music3);
+
+        List<Music> response = userService.sortAllMusicByPlays(musicList);
+
+        assertEquals(3, response.size(), "ERROR: Sizes was not identical");
+        assertEquals("title3", response.get(0).getTitle(), "ERROR: title 3 was not the most played song");
     }
 
     @Test
     void sortAllVideosByPlays() {
+        Video video = new Video("video", "title", "url", "release");
+        Video video2 = new Video("video", "title2", "url2", "release2");
+        Video video3 = new Video("video", "title3", "url3", "release3");
+        video.setPlayCounter(4);
+        video2.setPlayCounter(5);
+        video3.setPlayCounter(6);
+
+        List<Video> videoList = Arrays.asList(video, video2, video3);
+
+        List<Video> response = userService.sortAllVideosByPlays(videoList);
+
+        assertEquals(3, response.size(), "ERROR: Sizes was not identical");
+        assertEquals("title3", response.get(0).getTitle(), "ERROR: title 3 was not the most viewed video");
     }
 
     @Test
     void sortAllPodsByPlays() {
+        Pod pod = new Pod("pod", "title", "url", "release");
+        Pod pod2 = new Pod("pod", "title2", "url2", "release2");
+        Pod pod3 = new Pod("pod", "title3", "url3", "release3");
+        pod.setPlayCounter(4);
+        pod2.setPlayCounter(5);
+        pod3.setPlayCounter(6);
+
+        List<Pod> podList = Arrays.asList(pod, pod2, pod3);
+
+        List<Pod> response = userService.sortAllPodsByPlays(podList);
+
+        assertEquals(3, response.size(), "ERROR: Sizes was not identical");
+        assertEquals("title3", response.get(0).getTitle(), "ERROR: title 3 was not the most viewed pod");
     }
 
     @Test
-    void convertUserPlayedGenresToGenre() {
+    void convertUserPlayedGenresToGenreShouldReturnList() {
+        Genre rock = new Genre("rock", "music");
+        Genre jazz = new Genre("jazz", "music");
+        Genre hiphop = new Genre("hiphop", "music");
+        Genre pop = new Genre("pop", "music");
+
+        PlayedGenre playedRock = new PlayedGenre("rock", "music");
+        PlayedGenre playedJazz = new PlayedGenre("jazz", "music");
+        PlayedGenre playedHiphop = new PlayedGenre("hiphop", "music");
+        PlayedGenre playedPop = new PlayedGenre("pop", "music");
+        List<PlayedGenre> playedGenreList = Arrays.asList(playedRock, playedJazz, playedHiphop, playedPop);
+
+        when(genreServiceMock.findGenreByGenre("rock")).thenReturn(rock);
+        when(genreServiceMock.findGenreByGenre("jazz")).thenReturn(jazz);
+        when(genreServiceMock.findGenreByGenre("hiphop")).thenReturn(hiphop);
+        when(genreServiceMock.findGenreByGenre("pop")).thenReturn(pop);
+
+        List<Genre> response = userService.convertUserPlayedGenresToGenre(playedGenreList);
+
+        assertEquals("rock", response.get(0).getGenre(), "ERROR: Rock was not the first converted genre in the list");
     }
 
     @Test
@@ -588,6 +937,110 @@ class UserServiceTest {
     }
 
     @Test
-    void getUnlistenedGenres() {
+    void getUnlistenedGenresOfTypeMusicShouldReturnList() {
+        String type = "music";
+
+        Genre rockGenre = new Genre("rock", type);
+        Genre jazzGenre = new Genre("jazz", type);
+        Genre hiphopGenre = new Genre("hiphop", type);
+        Genre popGenre = new Genre("pop", type);
+        Genre nonMusicGenre = new Genre("delete", "pod");
+        rockGenre.setTotalPlays(1);
+        jazzGenre.setTotalPlays(2);
+        hiphopGenre.setTotalPlays(3);
+        popGenre.setTotalPlays(4);
+        nonMusicGenre.setTotalPlays(5);
+        List<Genre> genres = new ArrayList<>(Arrays.asList(rockGenre, jazzGenre, hiphopGenre, popGenre, nonMusicGenre));
+
+        when(genreServiceMock.getAllGenres()).thenReturn(genres);
+
+        User user = new User("freddan");
+
+
+        PlayedGenre rock = new PlayedGenre("rock", type);
+        PlayedGenre jazz = new PlayedGenre("jazz", type);
+        rock.setTotalPlays(1);
+        jazz.setTotalPlays(2);
+        List<PlayedGenre> genreList = Arrays.asList(rock, jazz);
+
+        user.setPlayedGenre(genreList);
+
+        List<Genre> unlistenedGenres = userService.getUnlistenedGenres(user, type);
+
+        assertEquals(2, unlistenedGenres.size(), "ERROR: Size was not 2");
+
+        verify(genreServiceMock).getAllGenres();
+    }
+
+    @Test
+    void getUnlistenedGenresOfTypePodShouldReturnList() {
+        String type = "pod";
+
+        Genre businessGenre = new Genre("business", type);
+        Genre travelGenre = new Genre("travel", type);
+        Genre environmentGenre = new Genre("environmentGenre", type);
+        Genre coffeeGenre = new Genre("coffee", type);
+        Genre nonPodGenre = new Genre("delete", "music");
+        businessGenre.setTotalPlays(1);
+        travelGenre.setTotalPlays(2);
+        environmentGenre.setTotalPlays(3);
+        coffeeGenre.setTotalPlays(4);
+        nonPodGenre.setTotalPlays(5);
+        List<Genre> genres = new ArrayList<>(Arrays.asList(businessGenre, travelGenre, environmentGenre, coffeeGenre, nonPodGenre));
+
+        when(genreServiceMock.getAllGenres()).thenReturn(genres);
+
+        User user = new User("freddan");
+
+
+        PlayedGenre business = new PlayedGenre("business", type);
+        PlayedGenre travel = new PlayedGenre("travel", type);
+        business.setTotalPlays(1);
+        travel.setTotalPlays(2);
+        List<PlayedGenre> genreList = Arrays.asList(business, travel);
+
+        user.setPlayedGenre(genreList);
+
+        List<Genre> unlistenedGenres = userService.getUnlistenedGenres(user, type);
+
+        assertEquals(2, unlistenedGenres.size(), "ERROR: Size was not 2");
+
+        verify(genreServiceMock).getAllGenres();
+    }
+
+    @Test
+    void getUnlistenedGenresOfTypeVideoShouldReturnList() {
+        String type = "video";
+
+        Genre actionGenre = new Genre("action", type);
+        Genre comedyGenre = new Genre("comedy", type);
+        Genre romanceGenre = new Genre("romanceGenre", type);
+        Genre horrorGenre = new Genre("horror", type);
+        Genre nonVideoGenre = new Genre("delete", "music");
+        actionGenre.setTotalPlays(1);
+        comedyGenre.setTotalPlays(2);
+        romanceGenre.setTotalPlays(3);
+        horrorGenre.setTotalPlays(4);
+        nonVideoGenre.setTotalPlays(5);
+        List<Genre> genres = new ArrayList<>(Arrays.asList(actionGenre, comedyGenre, romanceGenre, horrorGenre, nonVideoGenre));
+
+        when(genreServiceMock.getAllGenres()).thenReturn(genres);
+
+        User user = new User("freddan");
+
+
+        PlayedGenre action = new PlayedGenre("action", type);
+        PlayedGenre comedy = new PlayedGenre("comedy", type);
+        action.setTotalPlays(1);
+        comedy.setTotalPlays(2);
+        List<PlayedGenre> genreList = Arrays.asList(action, comedy);
+
+        user.setPlayedGenre(genreList);
+
+        List<Genre> unlistenedGenres = userService.getUnlistenedGenres(user, type);
+
+        assertEquals(2, unlistenedGenres.size(), "ERROR: Size was not 2");
+
+        verify(genreServiceMock).getAllGenres();
     }
 }

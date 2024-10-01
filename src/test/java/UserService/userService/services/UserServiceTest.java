@@ -1413,7 +1413,6 @@ class UserServiceTest {
 
     }
 
-    // TODO this one - not correctly done
     @Test
     void totalTop10SongsAllSongsOver10ShouldReturnList() {
         User user = new User("freddan");
@@ -1627,6 +1626,8 @@ class UserServiceTest {
         when(musicServiceMock.findAllMusicInGenre(pop)).thenReturn(popMusic);
 
         List<Music> top10 = userService.totalTop10Songs(user);
+
+        assertEquals("title42", top10.get(0).getTitle(), "ERROR: Title 42 was not the most played");
     }
 
     @Test

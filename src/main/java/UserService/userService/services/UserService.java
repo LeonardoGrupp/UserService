@@ -1249,7 +1249,7 @@ public class UserService {
         System.out.println("going to converts PlayedGenres to Genre");
         // Convert PlayedGenres into Genres
         List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres);
-        System.out.println("convering top genres");
+        System.out.println("converting top genres");
 
         List<Music> topSongs = new ArrayList<>();
 

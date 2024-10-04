@@ -604,8 +604,6 @@ public class UserService {
 
                         playedMediaService.save(playedMedia);
 
-                        System.out.println("media likes and dislikes has been reset");
-
                         user.removeOrAddMediaFromDislikedAndLikedMedia(playedMedia);
                         userRepository.save(user);
 
@@ -631,8 +629,6 @@ public class UserService {
                     playedGenre.resetLikeAndDisLikeGenre();
 
                     playedGenreService.save(playedGenre);
-
-                    System.out.println("genre likes and dislikes has been reset");
 
                     user.removeOrAddGenreFromDislikedAndLikedGenre(playedGenre);
                     userRepository.save(user);
@@ -668,10 +664,8 @@ public class UserService {
         boolean exists = podService.podExistsByUrl(url);
 
         if (exists) {
-            System.out.println("url is pod");
             return true;
         } else {
-            System.out.println("url was not pod");
             return false;
         }
     }
@@ -681,10 +675,8 @@ public class UserService {
         boolean exists = videoService.videoExistsByUrl(url);
 
         if (exists) {
-            System.out.println("url is video");
             return true;
         } else {
-            System.out.println("url was not video");
             return false;
         }
     }
@@ -781,21 +773,18 @@ public class UserService {
     public List<Video> videoRecommendations(long id) {
         User user = findUserById(id);
 
-        System.out.println("going into totalTop10Videos");
         return totalTop10Videos(user);
     }
 
     public List<Pod> podRecommendations(long id) {
         User user = findUserById(id);
 
-        System.out.println("going into totalTop10Pods");
         return totalTop10Pods(user);
     }
 
     public List<Music> musicRecommendations(long id) {
         User user = findUserById(id);
 
-        System.out.println("going into totalTop10Songs");
         return totalTop10Songs(user);
     }
 
@@ -806,50 +795,33 @@ public class UserService {
 
         if (type.equalsIgnoreCase("music")) {
 
-            // TODO HÄR VAR FELET - TA BORT I DE ANDRA
             // Get liked genres
-            // TODO nytt
             List<PlayedGenre> likedUserMusicGenres = new ArrayList<>();
             for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isLiked()) {
-                    System.out.println(playedGenre.getGenre() + " is LIKED and was added");
                     likedUserMusicGenres.add(playedGenre);
                 }
             }
-            // TODO --Nytt
 
             // if liked genres is empty
-
             List<PlayedGenre> userMusicGenres = new ArrayList<>();
-            //todo NYTT
             if (likedUserMusicGenres.isEmpty()) {
-                System.out.println("the liked list was EMPTY adding ALL music genres");
-                //todo --Nytt
 
                 for (PlayedGenre playedGenre : usersGenres) {
                     if (playedGenre.getType().equalsIgnoreCase("music") && !playedGenre.isDisliked()) {
                         userMusicGenres.add(playedGenre);
                     }
                 }
-                // todo Nytt
             }
-            // todo --Nytt
 
             List<PlayedGenre> sortedFullGenreList = new ArrayList<>();
 
-            //todo Nytt
             if (!likedUserMusicGenres.isEmpty()) {
-                System.out.println("liked genres is NOT empty");
                 sortedFullGenreList = likedUserMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
             }
             if (likedUserMusicGenres.isEmpty()) {
-                System.out.println("liked genres IS empty");
-                // todo --nytt
                 sortedFullGenreList = userMusicGenres.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
-                // todo nytt
             }
-            // todo --nytt
-
 
 
             if (sortedFullGenreList.size() >= 3) {
@@ -911,73 +883,58 @@ public class UserService {
     }
 
     public List<PlayedGenre> sortAllPlayedGenresByPlays(User user, String type) {
-        System.out.println("sortAllPlayedGenresByPlayed");
         List<PlayedGenre> usersGenres = user.getPlayedGenre();
 
         List<PlayedGenre> userGenresToSendBack = new ArrayList<>();
 
         if (type.equals("music")) {
-            System.out.println("type was music");
 
-            // todo NEW
             for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isLiked()) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }
-            // todo --NEW
 
-            // todo NEW
+            // If there was no liked genres, add all genres of same type
             if (userGenresToSendBack.isEmpty()) {
-                System.out.println("is empty");
-                // todo --NEW
+
                 for (PlayedGenre playedGenre : usersGenres) {
                     if (playedGenre.getType().equals("music") && !playedGenre.isDisliked()) {
-                        System.out.println("adding playedGenre: " + playedGenre.getGenre());
                         userGenresToSendBack.add(playedGenre);
                     }
                 }
-                System.out.println("all music genres added.");
-                //todo NEW
             }
-            // todo --NEW
 
-            //todo NEW check for dislikedGenres
+            // Checking for disliked genres
             if (!userGenresToSendBack.isEmpty()) {
-                System.out.println("checking if anything is disliked");
                 for (PlayedGenre playedGenre : usersGenres) {
                     if (playedGenre.getType().equalsIgnoreCase("music") && playedGenre.isDisliked()) {
-                        System.out.println(playedGenre.getGenre() + " WAS DISLIKED ***** REMOVING");
                         userGenresToSendBack.remove(playedGenre);
                     }
                 }
             }
 
         }
+
         if (type.equals("pod")) {
-            System.out.println("type was pod");
+
             for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("pod")) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }
-            System.out.println("all pod genres was added");
         }
+
         if (type.equals("video")) {
-            System.out.println("type was video");
+
             for (PlayedGenre playedGenre : usersGenres) {
                 if (playedGenre.getType().equalsIgnoreCase("video")) {
                     userGenresToSendBack.add(playedGenre);
                 }
             }
-            System.out.println("all video genres was added");
         }
 
-        System.out.println("sorting list");
-
         List<PlayedGenre> sortedGenreList = userGenresToSendBack.stream().sorted(Comparator.comparingInt(PlayedGenre::getTotalPlays).reversed()).collect(Collectors.toList());
-
-        System.out.println("returning list");
 
         return sortedGenreList;
     }
@@ -1017,26 +974,18 @@ public class UserService {
     }
 
     public List<Video> totalTop10Videos(User user) {
-        // hämtar alla videos
+
         List<Video> allVideos = videoService.findAllVideos();
 
         List<Video> videosToDelete = new ArrayList<>();
 
-        System.out.println("");
         // lägg till alla videos user kollat på
         for (PlayedMedia playedMedia : user.getPlayedMedia()) {
             for (Video video : allVideos) {
                 if (playedMedia.getUrl().equalsIgnoreCase(video.getUrl())) {
-                    System.out.println("duplicate: " + video.getTitle());
                     videosToDelete.add(video);
                 }
             }
-        }
-
-        System.out.println("");
-        System.out.println("Videos thats been viewed and will be removed");
-        for (Video video : videosToDelete) {
-            System.out.println(video.getTitle());
         }
 
         // deletar alla dubletter
@@ -1045,11 +994,6 @@ public class UserService {
                 allVideos.remove(video);
             }
         }
-
-        System.out.println("");
-        System.out.println("those videos are now removed");
-        System.out.println("size of allVideos: " + allVideos.size());
-
 
         List<Video> top10videos = new ArrayList<>();
 
@@ -1064,16 +1008,10 @@ public class UserService {
             }
 
         }
-        // If allVideos is not empty and allVideos size it less than 10
+        // If allVideos is not empty and allVideos size it less than 10 - if person have viewed a few videos but not all
         else if (allVideos.size() > 0 && allVideos.size() < 10) {
-            System.out.println("person has seen all videos but a few");
-            System.out.println("allVideos is not empty && size < 10");
             // extract missing amount of videos
             int numberOfVideosToAdd = 10 - allVideos.size();
-
-            System.out.println("");
-            System.out.println("the allVideos size was: " + allVideos.size());
-            System.out.println("we need to add: " + numberOfVideosToAdd);
 
             // get all videos
             List<Video> allVideos2 = videoService.findAllVideos();
@@ -1100,7 +1038,6 @@ public class UserService {
         }
         // person has seen all videos
         else if (allVideos.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
-            System.out.println("person has seen all videos");
             // Get all videos
             allVideos = videoService.findAllVideos();
 
@@ -1134,23 +1071,12 @@ public class UserService {
             }
         }
 
-        System.out.println("");
-        System.out.println("Pods thats been viewed/listened to and will be removed");
-        for (Pod pod : podsToDelete) {
-            System.out.println(pod.getTitle());
-        }
-
         // deletar alla dubletter
         if (!podsToDelete.isEmpty()) {
             for (Pod pod : podsToDelete) {
                 allPods.remove(pod);
             }
         }
-
-        System.out.println("");
-        System.out.println("those pods are now removed");
-        System.out.println("size of allPods: " + allPods.size());
-
 
         List<Pod> top10pods = new ArrayList<>();
 
@@ -1167,14 +1093,8 @@ public class UserService {
         }
         // If allVideos is not empty and allVideos size it less than 10
         else if (allPods.size() > 0 && allPods.size() < 10) {
-            System.out.println("person has seen all pods but a few");
-            System.out.println("allPods is not empty && size < 10");
             // extract missing amount of videos
             int numberOfPodsToAdd = 10 - allPods.size();
-
-            System.out.println("");
-            System.out.println("the allPods size was: " + allPods.size());
-            System.out.println("we need to add: " + numberOfPodsToAdd);
 
             // get all videos
             List<Pod> allPods2 = podService.findAllPods();
@@ -1201,7 +1121,6 @@ public class UserService {
         }
         // person has seen all videos
         else if (allPods.isEmpty()) { // if list is empty - return top 10 most listened pods no matter if user have listened to or not
-            System.out.println("person has seen all pods");
             // Get all videos
             allPods = podService.findAllPods();
 
@@ -1330,7 +1249,7 @@ public class UserService {
         System.out.println("going to converts PlayedGenres to Genre");
         // Convert PlayedGenres into Genres
         List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres);
-        System.out.println("convering top genres");
+        System.out.println("converting top genres");
 
         List<Music> topSongs = new ArrayList<>();
 
@@ -1582,6 +1501,4 @@ public class UserService {
 
         return sortedAllGenres;
     }
-
-
 }

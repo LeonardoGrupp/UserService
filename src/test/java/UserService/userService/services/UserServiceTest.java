@@ -972,6 +972,30 @@ class UserServiceTest {
     }
 
     @Test
+    void getUsersMostPlayedGenresMoreThanThreeWithLikedGenreMusicSortedByPlays() {
+        User user = new User("freddan");
+
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        PlayedGenre hiphop = new PlayedGenre("hiphop", "music");
+        PlayedGenre pop = new PlayedGenre("pop", "music");
+        rock.setTotalPlays(20);
+        jazz.setTotalPlays(10);
+        hiphop.setTotalPlays(5);
+        pop.setTotalPlays(8);
+        pop.likeGenre();
+
+        List<PlayedGenre> playedGenreList = Arrays.asList(rock, jazz, hiphop, pop);
+
+        user.setPlayedGenre(playedGenreList);
+
+        List<PlayedGenre> response = userService.getUsersMostPlayedGenresSortedByPlays(user, "music");
+
+        assertEquals(1, response.size(), "ERROR: It's not top 3");
+        assertEquals("pop", response.get(0).getGenre(), "ERROR: Pop was not the third most played genre");
+    }
+
+    @Test
     void getUsersMostPlayedGenresLessThanThreePodSortedByPlays() {
         User user = new User("freddan");
 
@@ -1286,15 +1310,329 @@ class UserServiceTest {
     }
 
     @Test
-    void totalTop10Videos() {
+    void totalTop10VideosAllVideosOver10ShouldReturnList() {
+        User user = new User("freddan");
+
+        PlayedMedia playedMedia = new PlayedMedia("video", "title", "url", "release");
+        playedMedia.setTimesPlayed(1);
+        List<PlayedMedia> usersPlayedVideos = Arrays.asList(playedMedia);
+        user.setPlayedMedia(usersPlayedVideos);
+
+        Video video1 = new Video("video", "title", "url", "release");
+        Video video2 = new Video("video", "title2", "url2", "release2");
+        Video video3 = new Video("video", "title3", "url3", "release3");
+        Video video4 = new Video("video", "title4", "url4", "release4");
+        Video video5 = new Video("video", "title5", "url5", "release5");
+        Video video6 = new Video("video", "title6", "url6", "release6");
+        Video video7 = new Video("video", "title7", "url7", "release7");
+        Video video8 = new Video("video", "title8", "url8", "release8");
+        Video video9 = new Video("video", "title9", "url9", "release9");
+        Video video10 = new Video("video", "title10", "url10", "release10");
+        Video video11 = new Video("video", "title11", "url11", "release11");
+
+        video8.setPlayCounter(30);
+        video1.setPlayCounter(20);
+        video2.setPlayCounter(15);
+        video3.setPlayCounter(10);
+        video4.setPlayCounter(9);
+        video5.setPlayCounter(8);
+        video6.setPlayCounter(7);
+        video7.setPlayCounter(6);
+        video9.setPlayCounter(5);
+        video10.setPlayCounter(4);
+        video11.setPlayCounter(3);
+
+        List<Video> allVideos = new ArrayList<>(Arrays.asList(video1, video2, video3, video4, video5, video6, video7, video8, video9, video10, video11));
+
+        when(videoServiceMock.findAllVideos()).thenReturn(allVideos);
+
+        List<Video> response = userService.totalTop10Videos(user);
+
+        assertEquals(30, response.get(0).getPlayCounter(), "ERROR: Video 8 was not in the top");
+        assertEquals(10, response.size(), "ERROR: Size was not 8");
     }
 
     @Test
-    void totalTop10Pods() {
+    void totalTop10VideosAllVideosOver1ButLessThan10ShouldReturnList() {
     }
 
     @Test
-    void totalTop10Songs() {
+    void totalTop10VideosAllVideosIsEmptyShouldReturnList() {
+    }
+
+    @Test
+    void totalTop10PodsAllPodsOver10ShouldReturnList() {
+        User user = new User("freddan");
+
+        PlayedMedia playedMedia = new PlayedMedia("pod", "title", "url", "release");
+        playedMedia.setTimesPlayed(1);
+        List<PlayedMedia> usersPlayedPods = Arrays.asList(playedMedia);
+        user.setPlayedMedia(usersPlayedPods);
+
+        Pod pod1 = new Pod("pod", "title", "url", "release");
+        Pod pod2 = new Pod("pod", "title2", "url2", "release2");
+        Pod pod3 = new Pod("pod", "title3", "url3", "release3");
+        Pod pod4 = new Pod("pod", "title4", "url4", "release4");
+        Pod pod5 = new Pod("pod", "title5", "url5", "release5");
+        Pod pod6 = new Pod("pod", "title6", "url6", "release6");
+        Pod pod7 = new Pod("pod", "title7", "url7", "release7");
+        Pod pod8 = new Pod("pod", "title8", "url8", "release8");
+        Pod pod9 = new Pod("pod", "title9", "url9", "release9");
+        Pod pod10 = new Pod("pod", "title10", "url10", "release10");
+        Pod pod11 = new Pod("pod", "title11", "url11", "release11");
+
+        pod8.setPlayCounter(30);
+        pod1.setPlayCounter(20);
+        pod2.setPlayCounter(15);
+        pod3.setPlayCounter(10);
+        pod4.setPlayCounter(9);
+        pod5.setPlayCounter(8);
+        pod6.setPlayCounter(7);
+        pod7.setPlayCounter(6);
+        pod9.setPlayCounter(5);
+        pod10.setPlayCounter(4);
+        pod11.setPlayCounter(3);
+
+        List<Pod> allPods = new ArrayList<>(Arrays.asList(pod1, pod2, pod3, pod4, pod5, pod6, pod7, pod8, pod9, pod10, pod11));
+
+        when(podServiceMock.findAllPods()).thenReturn(allPods);
+
+        List<Pod> response = userService.totalTop10Pods(user);
+
+        assertEquals(30, response.get(0).getPlayCounter(), "ERROR: Pod 8 was not in the top");
+        assertEquals(10, response.size(), "ERROR: Size was not 8");
+    }
+
+    @Test
+    void totalTop10PodsAllPodsOver1ButLessThan10ShouldReturnList() {
+
+    }
+
+    @Test
+    void totalTop10PodsAllPodsIsEmptyShouldReturnList() {
+
+    }
+
+    @Test
+    void totalTop10SongsAllSongsOver10ShouldReturnList() {
+        User user = new User("freddan");
+
+        // sortAllPlayedGenresByPlays(user, "music");
+        PlayedGenre rock = new PlayedGenre("rock", "music");
+        PlayedGenre jazz = new PlayedGenre("jazz", "music");
+        PlayedGenre hiphop = new PlayedGenre("hiphop", "music");
+
+        rock.setTotalPlays(255);
+        jazz.setTotalPlays(155);
+        hiphop.setTotalPlays(55);
+
+        List<PlayedGenre> sortedPlayedGenres = new ArrayList<>(
+                Arrays.asList(
+                        rock,
+                        jazz,
+                        hiphop
+                )
+        );
+
+        user.setPlayedGenre(sortedPlayedGenres);
+
+        PlayedMedia rock1 = new PlayedMedia("music", "title", "url", "release");
+        PlayedMedia rock2 = new PlayedMedia("music", "title2", "url2", "release");
+        PlayedMedia rock3 = new PlayedMedia("music", "title3", "url3", "release");
+        PlayedMedia rock4 = new PlayedMedia("music", "title4", "url4", "release");
+        PlayedMedia rock5 = new PlayedMedia("music", "title5", "url5", "release");
+        PlayedMedia rock6 = new PlayedMedia("music", "title6", "url6", "release");
+        PlayedMedia rock7 = new PlayedMedia("music", "title7", "url7", "release");
+        PlayedMedia rock8 = new PlayedMedia("music", "title8", "url8", "release");
+        PlayedMedia rock9 = new PlayedMedia("music", "title9", "url9", "release");
+        PlayedMedia rock10 = new PlayedMedia("music", "title10", "url10", "release");
+
+        rock1.setTimesPlayed(30);
+        rock2.setTimesPlayed(29);
+        rock3.setTimesPlayed(28);
+        rock4.setTimesPlayed(27);
+        rock5.setTimesPlayed(26);
+        rock6.setTimesPlayed(25);
+        rock7.setTimesPlayed(24);
+        rock8.setTimesPlayed(23);
+        rock9.setTimesPlayed(22);
+        rock10.setTimesPlayed(21);
+
+        PlayedMedia jazz1 = new PlayedMedia("music", "title11", "url11", "release");
+        PlayedMedia jazz2 = new PlayedMedia("music", "title12", "url12", "release");
+        PlayedMedia jazz3 = new PlayedMedia("music", "title13", "url13", "release");
+        PlayedMedia jazz4 = new PlayedMedia("music", "title14", "url14", "release");
+        PlayedMedia jazz5 = new PlayedMedia("music", "title15", "url15", "release");
+        PlayedMedia jazz6 = new PlayedMedia("music", "title16", "url16", "release");
+        PlayedMedia jazz7 = new PlayedMedia("music", "title17", "url17", "release");
+        PlayedMedia jazz8 = new PlayedMedia("music", "title18", "url18", "release");
+        PlayedMedia jazz9 = new PlayedMedia("music", "title19", "url19", "release");
+        PlayedMedia jazz10 = new PlayedMedia("music", "title20", "url20", "release");
+
+        jazz1.setTimesPlayed(20);
+        jazz2.setTimesPlayed(19);
+        jazz3.setTimesPlayed(18);
+        jazz4.setTimesPlayed(17);
+        jazz5.setTimesPlayed(16);
+        jazz6.setTimesPlayed(15);
+        jazz7.setTimesPlayed(14);
+        jazz8.setTimesPlayed(13);
+        jazz9.setTimesPlayed(12);
+        jazz10.setTimesPlayed(11);
+
+        PlayedMedia hiphop1 = new PlayedMedia("music", "title21", "url21", "release");
+        PlayedMedia hiphop2 = new PlayedMedia("music", "title22", "url22", "release");
+        PlayedMedia hiphop3 = new PlayedMedia("music", "title23", "url23", "release");
+        PlayedMedia hiphop4 = new PlayedMedia("music", "title24", "url24", "release");
+        PlayedMedia hiphop5 = new PlayedMedia("music", "title25", "url25", "release");
+        PlayedMedia hiphop6 = new PlayedMedia("music", "title26", "url26", "release");
+        PlayedMedia hiphop7 = new PlayedMedia("music", "title27", "url27", "release");
+        PlayedMedia hiphop8 = new PlayedMedia("music", "title28", "url28", "release");
+        PlayedMedia hiphop9 = new PlayedMedia("music", "title29", "url29", "release");
+        PlayedMedia hiphop10 = new PlayedMedia("music", "title30", "url30", "release");
+
+        hiphop1.setTimesPlayed(10);
+        hiphop2.setTimesPlayed(9);
+        hiphop3.setTimesPlayed(8);
+        hiphop4.setTimesPlayed(7);
+        hiphop5.setTimesPlayed(6);
+        hiphop6.setTimesPlayed(5);
+        hiphop7.setTimesPlayed(4);
+        hiphop8.setTimesPlayed(3);
+        hiphop9.setTimesPlayed(2);
+        hiphop10.setTimesPlayed(1);
+
+        List<PlayedMedia> sortedMediaByPlays = new ArrayList<>(
+                Arrays.asList(
+                        rock1,
+                        rock2,
+                        rock3,
+                        rock4,
+                        rock5,
+                        rock6,
+                        rock7,
+                        rock8,
+                        rock9,
+                        rock10,
+                        jazz1,
+                        jazz2,
+                        jazz3,
+                        jazz4,
+                        jazz5,
+                        jazz6,
+                        jazz7,
+                        jazz8,
+                        jazz9,
+                        jazz10,
+                        hiphop1,
+                        hiphop2,
+                        hiphop3,
+                        hiphop4,
+                        hiphop5,
+                        hiphop6,
+                        hiphop7,
+                        hiphop8,
+                        hiphop9,
+                        hiphop10
+                )
+        );
+
+        user.setPlayedMedia(sortedMediaByPlays);
+
+        // getTop8SongsFromUsersTopGenres(user, sortedPlayedGenres.size()); - should be the rock songs
+        Music music1 = new Music("music", "title", "url", "release");
+        Music music2 = new Music("music", "title2", "url2", "release");
+        Music music3 = new Music("music", "title3", "url3", "release");
+        Music music4 = new Music("music", "title4", "url4", "release");
+        Music music5 = new Music("music", "title5", "url5", "release");
+        Music music6 = new Music("music", "title6", "url6", "release");
+        Music music7 = new Music("music", "title7", "url7", "release");
+        Music music8 = new Music("music", "title8", "url8", "release");
+
+        music1.setPlayCounter(50);
+        music2.setPlayCounter(49);
+        music3.setPlayCounter(48);
+        music4.setPlayCounter(47);
+        music5.setPlayCounter(46);
+        music6.setPlayCounter(45);
+        music7.setPlayCounter(44);
+        music8.setPlayCounter(43);
+
+        List<Music> top8Music = new ArrayList<>(
+                Arrays.asList(
+                        music1,
+                        music2,
+                        music3,
+                        music4,
+                        music5,
+                        music6,
+                        music7,
+                        music8
+                )
+        );
+
+        // getUnlistenedGenres(user, "music");
+        Genre pop = new Genre("pop", "music");
+        pop.setTotalPlays(20);
+        List<Genre> unlistenedGenres = new ArrayList<>(Arrays.asList(pop));
+
+        Music popMusic41 = new Music("music", "title41", "url41", "release");
+        Music popMusic42 = new Music("music", "title42", "url42", "release");
+        Music popMusic43 = new Music("music", "title43", "url43", "release");
+        Music popMusic44 = new Music("music", "title44", "url44", "release");
+        Music popMusic45 = new Music("music", "title45", "url45", "release");
+        Music popMusic46 = new Music("music", "title46", "url46", "release");
+        Music popMusic47 = new Music("music", "title47", "url47", "release");
+        Music popMusic48 = new Music("music", "title48", "url48", "release");
+        Music popMusic49 = new Music("music", "title49", "url49", "release");
+        Music popMusic50 = new Music("music", "title50", "url50", "release");
+
+        popMusic41.setPlayCounter(60);
+        popMusic42.setPlayCounter(61);
+
+        List<Music> popMusic = new ArrayList<>(
+                Arrays.asList(
+                        popMusic41,
+                        popMusic42,
+                        popMusic43,
+                        popMusic44,
+                        popMusic45,
+                        popMusic46,
+                        popMusic47,
+                        popMusic48,
+                        popMusic49,
+                        popMusic50
+                )
+        );
+
+        PlayedGenre playedGenrePop = new PlayedGenre("pop", "music");
+        playedGenrePop.setTotalPlays(20);
+
+        PlayedMedia pop1 = new PlayedMedia("music", "title41", "url41", "release");
+        PlayedMedia pop2 = new PlayedMedia("music", "title42", "url42", "release");
+        PlayedMedia pop3 = new PlayedMedia("music", "title43", "url43", "release");
+        PlayedMedia pop4 = new PlayedMedia("music", "title44", "url44", "release");
+        PlayedMedia pop5 = new PlayedMedia("music", "title45", "url45", "release");
+        PlayedMedia pop6 = new PlayedMedia("music", "title46", "url46", "release");
+        PlayedMedia pop7 = new PlayedMedia("music", "title47", "url47", "release");
+        PlayedMedia pop8 = new PlayedMedia("music", "title48", "url48", "release");
+        PlayedMedia pop9 = new PlayedMedia("music", "title49", "url49", "release");
+        PlayedMedia pop10 = new PlayedMedia("music", "title50", "url50", "release");
+
+        List<PlayedMedia> popPlayedMedia = new ArrayList<>(Arrays.asList(pop1, pop2, pop3, pop4, pop5, pop6, pop7, pop8, pop9, pop10));
+
+        when(userService.getTop8SongsFromUsersTopGenres(user, sortedPlayedGenres.size())).thenReturn(top8Music);
+        when(userService.getUnlistenedGenres(user, "music")).thenReturn(unlistenedGenres);
+        when(musicServiceMock.findAllMusicInGenre(pop)).thenReturn(popMusic);
+
+        List<Music> top10 = userService.totalTop10Songs(user);
+
+        assertEquals("title42", top10.get(0).getTitle(), "ERROR: Title 42 was not the most played");
+    }
+
+    @Test
+    void totalTop10SongsAllSongsOver1ButLessThan10ShouldReturnList() {
+
     }
 
     @Test

@@ -1275,12 +1275,12 @@ class UserServiceTest {
         PlayedGenre playedPop = new PlayedGenre("pop", "music");
         List<PlayedGenre> playedGenreList = Arrays.asList(playedRock, playedJazz, playedHiphop, playedPop);
 
-        when(genreServiceMock.findGenreByGenre("rock")).thenReturn(rock);
-        when(genreServiceMock.findGenreByGenre("jazz")).thenReturn(jazz);
-        when(genreServiceMock.findGenreByGenre("hiphop")).thenReturn(hiphop);
-        when(genreServiceMock.findGenreByGenre("pop")).thenReturn(pop);
+        when(genreServiceMock.findGenreByGenreTypeMusic("rock")).thenReturn(rock);
+        when(genreServiceMock.findGenreByGenreTypeMusic("jazz")).thenReturn(jazz);
+        when(genreServiceMock.findGenreByGenreTypeMusic("hiphop")).thenReturn(hiphop);
+        when(genreServiceMock.findGenreByGenreTypeMusic("pop")).thenReturn(pop);
 
-        List<Genre> response = userService.convertUserPlayedGenresToGenre(playedGenreList);
+        List<Genre> response = userService.convertUserPlayedGenresToGenre(playedGenreList, "music");
 
         assertEquals("rock", response.get(0).getGenre(), "ERROR: Rock was not the first converted genre in the list");
     }

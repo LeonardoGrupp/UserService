@@ -1,7 +1,6 @@
 package UserService.userService.controllers;
 
 import UserService.userService.entites.PlayedGenre;
-import UserService.userService.entites.PlayedMedia;
 import UserService.userService.services.PlayedGenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

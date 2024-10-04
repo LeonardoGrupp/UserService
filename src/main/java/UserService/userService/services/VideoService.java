@@ -1,8 +1,6 @@
 package UserService.userService.services;
 
 import UserService.userService.repositories.VideoRepository;
-import UserService.userService.vo.Music;
-import UserService.userService.vo.Pod;
 import UserService.userService.vo.Video;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

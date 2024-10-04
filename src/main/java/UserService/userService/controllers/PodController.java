@@ -2,7 +2,6 @@ package UserService.userService.controllers;
 
 import UserService.userService.services.PodService;
 import UserService.userService.services.UserService;
-import UserService.userService.vo.Music;
 import UserService.userService.vo.Pod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

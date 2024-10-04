@@ -1006,11 +1006,29 @@ public class UserService {
         return sortedPodList;
     }
 
-    public List<Genre> convertUserPlayedGenresToGenre(List<PlayedGenre> playedGenreList) {
+    public List<Genre> convertUserPlayedGenresToGenre(List<PlayedGenre> playedGenreList, String type) {
 
         List<Genre> topGenres = new ArrayList<>();
         for (PlayedGenre playedGenre : playedGenreList) {
-            topGenres.add(genreService.findGenreByGenre(playedGenre.getGenre()));
+            if (type.equalsIgnoreCase("music")) {
+                Genre genre = genreService.findGenreByGenreTypeMusic(playedGenre.getGenre());
+
+                if (genre != null) {
+                    topGenres.add(genre);
+                }
+            } else if (type.equalsIgnoreCase("pod")) {
+                Genre genre = genreService.findGenreByGenreTypePod(playedGenre.getGenre());
+
+                if (genre != null) {
+                    topGenres.add(genre);
+                }
+            } else if (type.equalsIgnoreCase("video")) {
+                Genre genre = genreService.findGenreByGenreTypeVideo(playedGenre.getGenre());
+
+                if (genre != null) {
+                    topGenres.add(genre);
+                }
+            }
         }
 
         return topGenres;
@@ -1327,10 +1345,22 @@ public class UserService {
         System.out.println("");
         System.out.println("Extrect top 3 genres");
 
+        System.out.println("");
+        System.out.println("PLAYeD GENRES SOM HÄMTATS FRÅN PLAYED GENRES - SKA VARA MUSIC");
+        for (PlayedGenre playedGenre : usersTopPlayedGenres) {
+            System.out.println(playedGenre.getGenre() + " type: " + playedGenre.getType());
+        }
+
         System.out.println("going to converts PlayedGenres to Genre");
         // Convert PlayedGenres into Genres
-        List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres);
+        List<Genre> topGenres = convertUserPlayedGenresToGenre(usersTopPlayedGenres, "music");
         System.out.println("convering top genres");
+
+        System.out.println("");
+        System.out.println("SKA VARA GENRES NU OCH VARA TYPE MUSIC");
+        for(Genre genre : topGenres) {
+            System.out.println(genre.getGenre() + " type: " + genre.getType());
+        }
 
         List<Music> topSongs = new ArrayList<>();
 
@@ -1413,6 +1443,7 @@ public class UserService {
                 }
             }
         } else if (size == 2) {
+            System.out.println("2222222 KAN DET VARA FEL HÄR?");
             // Get all songs of genre
             List<Music> allSongsFirstGenre = musicService.findAllMusicInGenre(topGenres.get(0));
             List<Music> allSongsSecondGenre = musicService.findAllMusicInGenre(topGenres.get(1));
@@ -1421,6 +1452,8 @@ public class UserService {
             List<Music> allSongsTogether = new ArrayList<>();
             allSongsTogether.addAll(allSongsFirstGenre);
             allSongsTogether.addAll(allSongsSecondGenre);
+
+            System.out.println("1 kommer hit");
 
             List<Music> musicToDelete = new ArrayList<>();
 
@@ -1433,10 +1466,14 @@ public class UserService {
                 }
             }
 
+            System.out.println("2. kommer hit");
+
             // Remove the music thats already been listened to
             for (Music music : musicToDelete) {
                 allSongsTogether.remove(music);
             }
+
+            System.out.println("3. kommer hit");
 
             // If allSongsTogether = empty it means no unplayed songs exist. If so, add all top 2 genre songs into allSongsTogether
             if (allSongsTogether.isEmpty()) {
@@ -1462,6 +1499,8 @@ public class UserService {
             }
         } else if (size == 1) {
             // Get all songs of genre
+
+            System.out.println("11111 KAN DET VARA FEL HÄR???");
             List<Music> allSongsFirstGenre = musicService.findAllMusicInGenre(topGenres.get(0));
 
             // Add all songs into 1 list
